@@ -7,6 +7,7 @@
 <style>
 :root { --ink:#1c1e26; --sub:#5a5f73; --line:#d8dbe4; --brand:#0b5bd3; --codebg:#f4f4f8; }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body { margin:0; background:#f6f7fa; color:var(--ink);
   font:16px/1.95 "Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei","PingFang SC",sans-serif; }
 .wrap { max-width:900px; margin:0 auto; padding:34px 22px 80px; background:#fff; min-height:100vh;
@@ -55,19 +56,18 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 </style>
 </head>
 <body><div class="wrap">
-<nav class="toc"><div style="font-weight:700;margin-bottom:6px">目录</div><a href="#sec1">一、开始之前：这篇博客能带你做什么</a><a href="#sec2">二、预备知识：杀软怎么“抓坏人”，免杀就怎么“见招拆招”</a><a href="#sec3">三、实验环境</a><a href="#sec4">四、第 0/1 级对照组：msfvenom 裸 exe 与编码器变形</a><a href="#sec5">五、第 2 级：C + shellcode 半手工——把载荷藏进自己的程序</a><a href="#sec6">六、第 3 级：UPX 加壳——老牌壳也是“知名特征”</a><a href="#sec7">七、第 4 级（终态方案）：组件分离 + 私有加密</a><a href="#sec8">八、传输到靶机：tar + socat + MD5 校验（B 环境）</a><a href="#sec9">九、放榜时刻：对照组全灭，免杀组 0 威胁</a><a href="#sec10">十、运行层：443 端口回连拿权限</a><a href="#sec11">十一、加壳版加载器的运行层验证（B 环境）</a><a href="#sec12">十二、进阶附加题：跨网段实测另一台电脑</a><a href="#sec13">十三、结果总表</a><a href="#sec14">十四、原理深挖：为什么有的死、有的活</a><a href="#sec15">十五、踩坑速查表（我们踩过的 8 个坑，帮你省一晚上）</a><a href="#sec16">十六、基础问题（留作思考，不代答）</a><a href="#sec17">十七、写在最后</a></nav><div class="notice">📄 本文提供 <b>Word 版</b>（图1～图30 编号，适配华为云富文本导入）与本页 <b>HTML 版</b>（图1～图24 编号，滑动对比可直接交互）。两版图号体系不同，正文引用各自对齐。</div>
 <h1>免杀原理与实践：组件分离绕过 Defender 静态查杀（0基础可复现）</h1>
 <blockquote><strong>作者</strong>：《网络攻防》课程实验三课题组的两位课题负责人——<strong>A（学号 20242110）</strong>与 <strong>B（学号 20242217）</strong>，两人各自独立搭建环境完成实测。</blockquote>
 <blockquote><strong>本文性质</strong>：课程实验完整复现记录，全部操作在<strong>授权的教学实验环境</strong>中进行（自建虚拟机 + 自愿配合的同学电脑），所有样本仅用于安全教学，请勿用于任何未授权用途。</blockquote>
 <blockquote><strong>一句话剧透</strong>：在 <strong>Microsoft Defender 实时保护全程开启、不加任何排除项</strong>的前提下，msfvenom 直接生成的后门 1 分钟内全灭；而把“恶意字节”从程序里拆出去、加密成纯文本、运行时才在内存里合体的<strong>组件分离</strong>方案，让杀软<strong>扫描 0 威胁、后门照常回连</strong>——这套方法在两台完全独立的环境里都复现成功，最后还完成了跨网段的附加题实测。</blockquote>
-<h2 id="sec1"><span class="hn">一、</span>开始之前：这篇博客能带你做什么</h2>
+<nav class="toc"><div style="font-weight:700;margin-bottom:6px">目录</div><a href="#sec1">一、开始之前：这篇博客能带你做什么</a><a href="#sec2">二、预备知识：杀软怎么“抓坏人”，免杀就怎么“见招拆招”</a><a href="#sec3">三、实验环境</a><a href="#sec4">四、第 0/1 级对照组：msfvenom 裸 exe 与编码器变形</a><a href="#sec5">五、第 2 级：C + shellcode 半手工——把载荷藏进自己的程序</a><a href="#sec6">六、第 3 级：UPX 加壳——老牌壳也是“知名特征”</a><a href="#sec7">七、第 4 级（终态方案）：组件分离 + 私有加密</a><a href="#sec8">八、传输到靶机：tar + socat + MD5 校验（B 环境）</a><a href="#sec9">九、放榜时刻：对照组全灭，免杀组 0 威胁</a><a href="#sec10">十、运行层：443 端口回连拿权限</a><a href="#sec11">十一、加壳版加载器的运行层验证（B 环境）</a><a href="#sec12">十二、进阶附加题：跨网段实测另一台电脑</a><a href="#sec13">十三、结果总表</a><a href="#sec14">十四、原理深挖：为什么有的死、有的活</a><a href="#sec15">十五、踩坑速查表（我们踩过的 8 个坑，帮你省一晚上）</a><a href="#sec16">十六、基础问题（留作思考，不代答）</a><a href="#sec17">十七、写在最后</a></nav><h2 id="sec1"><span class="hn">一、</span>开始之前：这篇博客能带你做什么</h2>
 <p><strong>先认识两位作者（也是两套实验环境的主人）</strong>：</p>
 <ul>
 <li><strong>A（学号 20242110）</strong>：本文主线。从零完成“裸 exe → 编码器 → C+shellcode → UPX → 组件分离”五级演进的全部实测，以及跨网段附加题（编号配图 16 张：图1～8、14、16～17、20～24）；</li>
 <li><strong>B（学号 20242217）</strong>：进阶补强。负责模块踩踏版加载器与 x64 变体、UPX 压缩闭环、tar+MD5 传输纪律与 reverse_https 行为层实测（编号配图 8 张：图9～13、15、18～19），另在图1/2/3/8 提供与 A 同阶段的对照滑片 6 张。</li>
 </ul>
 <p>下文一律以 <strong>A 环境 / B 环境</strong>指代两人各自的实验环境。</p>
-<p><strong>你不需要任何安全基础。</strong> 本文会手把手带你完成：</p>
+<p><strong>零基础也没关系</strong>，本文会手把手带你完成：</p>
 <ol>
 <li>搭好攻击机（Kali）+ 靶机（Windows 11）的实验环境；</li>
 <li>亲手生成一个“注定被杀”的后门，亲眼看到 Defender 弹窗；</li>
@@ -84,7 +84,7 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 <tr><td>Metasploit</td><td>Kali 自带（msfvenom / msfconsole）</td></tr>
 <tr><td>mingw-w64、UPX、socat</td><td>Kali 上一条命令装好，见「实验环境」一节</td></tr>
 </tbody></table></div>
-<p><strong>先背下这张名词速查表</strong>，后文反复出现：</p>
+<p><strong>这张名词速查表</strong>收录了后文反复出现的术语，随用随查：</p>
 <div class="tbl"><div class="tcap">表2　名词速查表</div>
 <table><thead><tr><th>名词</th><th>一句话解释</th></tr></thead><tbody>
 <tr><td>payload / 载荷</td><td>攻击代码本体，本文指 meterpreter 后门的机器码</td></tr>
