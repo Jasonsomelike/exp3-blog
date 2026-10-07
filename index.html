@@ -100,10 +100,10 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .hits a:hover { background:#eef2fb; }
 #sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
 #sideToc .hits .ctx b { color:#c7254e; }
-/* 收缩细条常态：正文整体右移避开 34px 条；展开态：右移避开 300px 面板 */
-body .wrap { transition: padding-left .22s ease; padding-left: 48px; }
+/* 仅展开期间正文右移让位；收起后立即回位（细条落在宽屏居中留白处，不遮挡） */
+body .wrap { transition: padding-left .22s ease; }
 body.tocopen .wrap { padding-left: 316px; }
-@media (max-width:900px) { body .wrap { padding-left: 40px; } body.tocopen .wrap { padding-left: 40px; } }
+@media (max-width:900px) { body.tocopen .wrap { padding-left: 40px; } }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
@@ -613,7 +613,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     stA.forEach(function(a, i){ a.classList.toggle('cur', i === idx); });
   }
   window.addEventListener('scroll', markCur, {passive:true}); markCur();
-  var hits = [], cur = -1;
+  var hits = [], cur = -1, lastKw = '';
   function clearHits(){
     hits.forEach(function(m){
       var p = m.parentNode;
@@ -696,8 +696,16 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   }
   var _jumpTo = jumpTo;
   jumpTo = function(i){ _jumpTo(i); syncList(); };
-  st.querySelector('#sNext').addEventListener('click', function(){ jumpTo(cur + 1); });
-  st.querySelector('#sPrev').addEventListener('click', function(){ jumpTo(cur - 1); });
+  function ensureSearched(){
+    var kw = st.querySelector('#sKw').value.trim();
+    if (!kw) { clearHits(); return false; }
+    if (!hits.length || lastKw !== kw) { lastKw = kw; highlight(kw); }
+    return hits.length > 0;
+  }
+  var _hl = highlight;
+  highlight = function(kw){ lastKw = kw || ''; _hl(kw); };
+  st.querySelector('#sNext').addEventListener('click', function(){ if (ensureSearched()) jumpTo(cur + 1); });
+  st.querySelector('#sPrev').addEventListener('click', function(){ if (ensureSearched()) jumpTo(cur - 1); });
   st.querySelector('#sClr').addEventListener('click', function(){
     this.closest('.inner').querySelector('#sKw').value = ''; clearHits();
   });
