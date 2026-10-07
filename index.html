@@ -142,6 +142,10 @@ body.tocopen .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
   .carousel .slide img { height:240px; }
   mark.hit { background:#ffd54d; }
 }
+/* 跳转收起过渡：0.6s 内压制 hover/focus 重展，防止面板抖动 */
+#sideToc.closing, #sideToc.closing:hover, #sideToc.closing:focus-within { width:34px !important; box-shadow:none; }
+#sideToc.closing .tab { display:block !important; }
+#sideToc.closing .inner, #sideToc.closing:hover .inner, #sideToc.closing:focus-within .inner { display:none !important; }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
