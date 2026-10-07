@@ -22,6 +22,9 @@ p, ul, ol { margin:10px 0; text-align:justify; }
 ul, ol { padding-left:1.6em; }
 li { margin:5px 0; }
 strong { color:#0d2a66; }
+.wrap { --qfont: "SimSun","NSimSun","Source Han Serif SC","Noto Serif CJK SC",serif; }
+.wrap :is(p,li,h1,h2,h3,blockquote,td,th,figcaption,strong) { font-family: inherit; }
+.wrap q, .wrap .qq { font-family: var(--qfont); }
 blockquote { margin:14px 0; padding:10px 16px; background:#f7f8fa; border-left:4px solid #b9c2d8;
   color:#3c4152; font-size:15px; }
 blockquote p { margin:4px 0; }
@@ -97,6 +100,8 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .hits a:hover { background:#eef2fb; }
 #sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
 #sideToc .hits .ctx b { color:#c7254e; }
+#sideToc.locked ~ .wrap, body.tocopen .wrap { margin-left: 316px; transition: margin-left .22s ease; }
+@media (max-width:1300px) { #sideToc.locked ~ .wrap, body.tocopen .wrap { margin-left: 34px; } }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
@@ -584,9 +589,13 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     + '<div class="snav"><button id="sPrev" type="button">↑ 上一个</button>'
     + '<button id="sNext" type="button">↓ 下一个</button><button id="sClr" type="button">清除</button></div>'
     + '<div class="smeta" id="sMeta"></div>'
-    + '<div class="snav"><button id="sHitsClr" type="button">✕ 关闭结果</button></div>'
     + '<div class="hits" id="sHits" style="display:none"></div><nav id="stLinks"></nav></div>';
   document.body.appendChild(st);
+  var lock = function(on){ document.body.classList.toggle('tocopen', on); };
+  st.addEventListener('mouseenter', function(){ lock(true); });
+  st.addEventListener('mouseleave', function(){ if (!st.contains(document.activeElement)) lock(false); });
+  st.addEventListener('focusin', function(){ lock(true); });
+  st.addEventListener('focusout', function(){ setTimeout(function(){ if (!st.contains(document.activeElement)) lock(false); }, 0); });
   var links = document.querySelectorAll('.wrap .toc a');
   var nav = st.querySelector('#stLinks');
   links.forEach(function(a){
@@ -637,7 +646,13 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
       n2.parentNode.replaceChild(frag, n2);
     });
     var meta = st.querySelector('#sMeta');
-    meta.textContent = hits.length ? ('共 ' + hits.length + ' 处，当前第 1 处') : '未找到';
+    if (!hits.length) {
+      meta.textContent = '未找到 “' + kw + '”';
+      hitsBox.innerHTML = '<div class="empty">没有匹配的结果</div>';
+      hitsBox.style.display = 'block';
+      return;
+    }
+    meta.textContent = '共 ' + hits.length + ' 处，当前第 1 处';
     buildList(kw);
     if (hits.length) jumpTo(0);
   }
@@ -677,9 +692,6 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     as.forEach(function(a, i){ a.classList.toggle('cur', i === cur); });
     if (as[cur]) as[cur].scrollIntoView({block:'nearest'});
   }
-  st.querySelector('#sHitsClr').addEventListener('click', function(){
-    hitsBox.style.display = 'none'; hitsBox.innerHTML = '';
-  });
   var _jumpTo = jumpTo;
   jumpTo = function(i){ _jumpTo(i); syncList(); };
   st.querySelector('#sNext').addEventListener('click', function(){ jumpTo(cur + 1); });
