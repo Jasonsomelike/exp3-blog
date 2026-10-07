@@ -100,8 +100,10 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .hits a:hover { background:#eef2fb; }
 #sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
 #sideToc .hits .ctx b { color:#c7254e; }
-#sideToc.locked ~ .wrap, body.tocopen .wrap { margin-left: 316px; transition: margin-left .22s ease; }
-@media (max-width:1300px) { #sideToc.locked ~ .wrap, body.tocopen .wrap { margin-left: 34px; } }
+/* 收缩细条常态：正文整体右移避开 34px 条；展开态：右移避开 300px 面板 */
+body .wrap { transition: padding-left .22s ease; padding-left: 48px; }
+body.tocopen .wrap { padding-left: 316px; }
+@media (max-width:900px) { body .wrap { padding-left: 40px; } body.tocopen .wrap { padding-left: 40px; } }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
