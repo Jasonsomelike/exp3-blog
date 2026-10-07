@@ -429,7 +429,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre>
 <h3><span class="hn">（四）</span>第二轮：另一台同局域网电脑（同网段直连，免转发）</h3>
 <p>第一轮的靶机在<strong>另一个网段</strong>，需要转发链路；这一轮把靶机换成一台与 Kali 同处一个 NAT 网段的 Windows 电脑（主机名 WYC，网段内地址 <code>10.30.42.143</code>，经转发主机 NAT 出站）——<strong>连端口转发都不需要了</strong>，payload 的 LHOST 直接填 Kali 地址，Kali 起 handler 后对方运行 loader 即可。</p>
 <p>实测结果（2026-10-07）：Defender 未检出 loader，回连成功；这轮的控制力演示更进一步——除了 <code>webcam_snap</code>，还用 <code>keyscan_start</code>/<code>keyscan_dump</code> 做了<strong>键盘记录</strong>：对方敲下的按键被实时捕获（截图里的一串 <code>^H</code> 即退格键的记录）。</p>
-<p>![图25 第二轮实测：同局域网电脑（WYC，10.30.42.143）loader 未检出、回连成功；keyscan_dump 捕获键盘输入，webcam_snap 存图（右上查看器）](img/fig25.png)</p>
+<figure><img src="img/fig25.png" alt="图25 A 环境第二轮实测：同局域网电脑（WYC，10.30"><figcaption>图25 A 环境第二轮实测：同局域网电脑（WYC，10.30.42.143）loader 未检出、回连成功；keyscan_dump 捕获对方键盘输入（一串 ^H 即退格键），webcam_snap 拍照已存（右上查看器，含历史截图缩略）</figcaption></figure>
 <div class="tbl"><div class="tcap">表6　附加题实测信息汇总</div>
 <table><thead><tr><th>附加题实测信息</th><th>内容</th></tr></thead><tbody>
 <tr><td>对方电脑</td><td>Lenovo Legion Y7000 IRX9，主机名 LH754168，Windows 11 24H2+（Build 26200，x64）</td></tr>
