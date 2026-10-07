@@ -71,12 +71,12 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc { position:fixed; left:0; top:0; bottom:0; width:34px; z-index:60;
   background:#ffffff; transition:width .22s ease; overflow:hidden;
   border-right:1px solid var(--line); box-shadow:2px 0 8px rgba(20,24,40,.06); }
-#sideToc:hover { width:300px; box-shadow:6px 0 24px rgba(20,24,40,.14); }
+#sideToc:hover, #sideToc:focus-within { width:300px; box-shadow:6px 0 24px rgba(20,24,40,.14); }
 #sideToc .tab { writing-mode:vertical-rl; letter-spacing:4px; font-size:12.5px; color:var(--brand);
   padding:16px 9px; user-select:none; font-weight:600; }
-#sideToc:hover .tab { display:none; }
+#sideToc:hover .tab, #sideToc:focus-within .tab { display:none; }
 #sideToc .inner { display:none; padding:14px 14px 20px; height:100%; overflow-y:auto; }
-#sideToc:hover .inner { display:block; }
+#sideToc:hover .inner, #sideToc:focus-within .inner { display:block; }
 #sideToc .hd { font-weight:700; font-size:13.5px; color:var(--ink); margin:2px 0 8px; }
 #sideToc a { display:block; color:var(--ink); text-decoration:none; font-size:13px; line-height:1.6;
   padding:3px 8px; border-radius:6px; border-left:2px solid transparent; }
@@ -91,6 +91,12 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .snav button { flex:1; background:#f6f7fa; color:var(--ink); border:1px solid var(--line);
   border-radius:6px; font-size:12px; padding:4px 0; cursor:pointer; }
 #sideToc .snav button:hover { background:#eef2fb; color:var(--brand); border-color:var(--brand); }
+#sideToc .hits { margin-top:8px; max-height:46vh; overflow-y:auto; border-top:1px solid var(--line); }
+#sideToc .hits a { display:block; font-size:12.5px; line-height:1.55; color:var(--ink);
+  padding:5px 8px; border-left:2px solid transparent; border-radius:0 6px 6px 0; cursor:pointer; }
+#sideToc .hits a:hover { background:#eef2fb; }
+#sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
+#sideToc .hits .ctx b { color:#c7254e; }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
@@ -577,7 +583,9 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     + 'placeholder="搜索关键词…（回车跳转）"></div>'
     + '<div class="snav"><button id="sPrev" type="button">↑ 上一个</button>'
     + '<button id="sNext" type="button">↓ 下一个</button><button id="sClr" type="button">清除</button></div>'
-    + '<div class="smeta" id="sMeta"></div><nav id="stLinks"></nav></div>';
+    + '<div class="smeta" id="sMeta"></div>'
+    + '<div class="snav"><button id="sHitsClr" type="button">✕ 关闭结果</button></div>'
+    + '<div class="hits" id="sHits" style="display:none"></div><nav id="stLinks"></nav></div>';
   document.body.appendChild(st);
   var links = document.querySelectorAll('.wrap .toc a');
   var nav = st.querySelector('#stLinks');
@@ -602,6 +610,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     });
     hits = []; cur = -1;
     var meta = st.querySelector('#sMeta'); if (meta) meta.textContent = '';
+    if (typeof hitsBox !== 'undefined') { hitsBox.innerHTML = ''; hitsBox.style.display = 'none'; }
   }
   function highlight(kw){
     clearHits();
@@ -629,6 +638,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     });
     var meta = st.querySelector('#sMeta');
     meta.textContent = hits.length ? ('共 ' + hits.length + ' 处，当前第 1 处') : '未找到';
+    buildList(kw);
     if (hits.length) jumpTo(0);
   }
   function jumpTo(i){
@@ -643,6 +653,35 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     if (e.key === 'Enter') highlight(this.value.trim());
     if (e.key === 'Escape') { this.value=''; clearHits(); }
   });
+  var hitsBox = st.querySelector('#sHits');
+  function snippet(textNode, kw, radius){
+    var val = textNode.nodeValue, k = val.indexOf(kw);
+    var a = Math.max(0, k - radius), b = Math.min(val.length, k + kw.length + radius);
+    var esc = function(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;'); };
+    return esc(val.slice(a, k)) + '<b>' + esc(kw) + '</b>' + esc(val.slice(k + kw.length, b));
+  }
+  function buildList(kw){
+    hitsBox.innerHTML = '';
+    if (!hits.length) { hitsBox.style.display = 'none'; return; }
+    hits.forEach(function(m, i){
+      var a = document.createElement('a');
+      a.innerHTML = '<span class="ctx">' + snippet(m.parentNode, kw, 26) + '</span>';
+      a.addEventListener('click', function(){ jumpTo(i); });
+      hitsBox.appendChild(a);
+    });
+    hitsBox.style.display = 'block';
+    syncList();
+  }
+  function syncList(){
+    var as = hitsBox.querySelectorAll('a');
+    as.forEach(function(a, i){ a.classList.toggle('cur', i === cur); });
+    if (as[cur]) as[cur].scrollIntoView({block:'nearest'});
+  }
+  st.querySelector('#sHitsClr').addEventListener('click', function(){
+    hitsBox.style.display = 'none'; hitsBox.innerHTML = '';
+  });
+  var _jumpTo = jumpTo;
+  jumpTo = function(i){ _jumpTo(i); syncList(); };
   st.querySelector('#sNext').addEventListener('click', function(){ jumpTo(cur + 1); });
   st.querySelector('#sPrev').addEventListener('click', function(){ jumpTo(cur - 1); });
   st.querySelector('#sClr').addEventListener('click', function(){
