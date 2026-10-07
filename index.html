@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{TITLE}</title>
+<title>免杀原理与实践：组件分离绕过 Defender 静态查杀（0基础可复现）</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
 <style>
 :root { --ink:#1c1e26; --sub:#5a5f73; --line:#d8dbe4; --brand:#0b5bd3; --codebg:#f4f4f8; }
 * { box-sizing: border-box; }
@@ -65,6 +66,34 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 .toc a:hover { color:var(--brand); }
 .notice { background:#fff8e8; border:1px solid #eadfb8; border-radius:8px; padding:10px 16px; font-size:14px;
   color:#6b5b1e; margin:16px 0; }
+
+/* ---- 左侧悬浮大纲 ---- */
+#sideToc { position:fixed; left:0; top:0; bottom:0; width:34px; z-index:60;
+  background:#1b1e2a; color:#c8cde0; transition:width .22s ease; overflow:hidden;
+  border-right:1px solid #2c3040; }
+#sideToc:hover { width:300px; box-shadow:6px 0 24px rgba(0,0,0,.35); }
+#sideToc .tab { writing-mode:vertical-rl; letter-spacing:4px; font-size:12.5px; color:#8f97b5;
+  padding:16px 9px; user-select:none; }
+#sideToc:hover .tab { display:none; }
+#sideToc .inner { display:none; padding:14px 14px 20px; height:100%; overflow-y:auto; }
+#sideToc:hover .inner { display:block; }
+#sideToc .hd { font-weight:700; font-size:13.5px; color:#e8ebf5; margin:2px 0 8px; }
+#sideToc a { display:block; color:#c8cde0; text-decoration:none; font-size:13px; line-height:1.6;
+  padding:3px 8px; border-radius:6px; border-left:2px solid transparent; }
+#sideToc a:hover { background:#2a2f42; color:#fff; }
+#sideToc a.cur { border-left-color:#4ade80; background:#24314a; color:#fff; }
+#sideToc .sbox { margin:6px 0 10px; }
+#sideToc input { width:100%; background:#12141d; border:1px solid #343a4e; color:#e8ebf5;
+  border-radius:6px; padding:6px 9px; font-size:13px; outline:none; }
+#sideToc input:focus { border-color:#2f7bd9; }
+#sideToc .smeta { font-size:11.5px; color:#8f97b5; margin:4px 2px; }
+#sideToc .snav { display:flex; gap:6px; margin:6px 0 2px; }
+#sideToc .snav button { flex:1; background:#2a2f42; color:#cfd5ea; border:1px solid #3c4258;
+  border-radius:6px; font-size:12px; padding:4px 0; cursor:pointer; }
+#sideToc .snav button:hover { background:#3a4160; color:#fff; }
+mark.hit { background:#ffd54d; color:#1b1e2a; border-radius:2px; padding:0 1px; }
+mark.hit.cur { background:#ff8f3d; color:#1b1e2a; }
+@media (max-width:1100px) { #sideToc { display:none; } }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
 </style>
 </head>
@@ -543,6 +572,85 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   lb.addEventListener('click', close);
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape') close(); });
   function close(){ lb.classList.remove('on'); }
+  // ---- 左侧大纲 + 搜索 ----
+  var st = document.createElement('div'); st.id = 'sideToc';
+  st.innerHTML = '<div class="tab">目 录 · 大 纲</div><div class="inner">'
+    + '<div class="hd">目录</div><div class="sbox"><input id="sKw" type="text" '
+    + 'placeholder="搜索关键词…（回车跳转）"></div>'
+    + '<div class="snav"><button id="sPrev" type="button">↑ 上一个</button>'
+    + '<button id="sNext" type="button">↓ 下一个</button><button id="sClr" type="button">清除</button></div>'
+    + '<div class="smeta" id="sMeta"></div><nav id="stLinks"></nav></div>';
+  document.body.appendChild(st);
+  var links = document.querySelectorAll('.wrap .toc a');
+  var nav = st.querySelector('#stLinks');
+  links.forEach(function(a){
+    var el = document.createElement('a');
+    el.href = a.getAttribute('href'); el.textContent = a.textContent;
+    nav.appendChild(el);
+  });
+  var stA = nav.querySelectorAll('a');
+  var secs = [].map.call(links, function(a){ return document.getElementById(a.getAttribute('href').slice(1)); });
+  function markCur(){
+    var y = window.scrollY + 120, idx = 0;
+    secs.forEach(function(s2, i){ if (s2 && s2.offsetTop <= y) idx = i; });
+    stA.forEach(function(a, i){ a.classList.toggle('cur', i === idx); });
+  }
+  window.addEventListener('scroll', markCur, {passive:true}); markCur();
+  var hits = [], cur = -1;
+  function clearHits(){
+    hits.forEach(function(m){
+      var p = m.parentNode;
+      p.replaceChild(document.createTextNode(m.textContent), m); p.normalize();
+    });
+    hits = []; cur = -1;
+    var meta = st.querySelector('#sMeta'); if (meta) meta.textContent = '';
+  }
+  function highlight(kw){
+    clearHits();
+    if (!kw) return;
+    var root = document.querySelector('.wrap');
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode: function(n){
+        if (!n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var pn = n.parentNode;
+        if (pn.closest && (pn.closest('script') || pn.closest('style') || pn.closest('.codewrap') || pn.closest('#sideToc'))) return NodeFilter.FILTER_REJECT;
+        return n.nodeValue.indexOf(kw) >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    var nodes = [], n2;
+    while ((n2 = walker.nextNode())) nodes.push(n2);
+    nodes.forEach(function(n2){
+      var frag = document.createDocumentFragment(), val = n2.nodeValue, pos = 0, k;
+      while ((k = val.indexOf(kw, pos)) >= 0) {
+        if (k > pos) frag.appendChild(document.createTextNode(val.slice(pos, k)));
+        var mk = document.createElement('mark'); mk.className = 'hit'; mk.textContent = kw;
+        frag.appendChild(mk); hits.push(mk); pos = k + kw.length;
+      }
+      if (pos < val.length) frag.appendChild(document.createTextNode(val.slice(pos)));
+      n2.parentNode.replaceChild(frag, n2);
+    });
+    var meta = st.querySelector('#sMeta');
+    meta.textContent = hits.length ? ('共 ' + hits.length + ' 处，当前第 1 处') : '未找到';
+    if (hits.length) jumpTo(0);
+  }
+  function jumpTo(i){
+    if (!hits.length) return;
+    if (cur >= 0 && hits[cur]) hits[cur].classList.remove('cur');
+    cur = ((i % hits.length) + hits.length) % hits.length;
+    var m = hits[cur]; m.classList.add('cur');
+    m.scrollIntoView({behavior:'smooth', block:'center'});
+    st.querySelector('#sMeta').textContent = '共 ' + hits.length + ' 处，当前第 ' + (cur+1) + ' 处';
+  }
+  st.querySelector('#sKw').addEventListener('keydown', function(e){
+    if (e.key === 'Enter') highlight(this.value.trim());
+    if (e.key === 'Escape') { this.value=''; clearHits(); }
+  });
+  st.querySelector('#sNext').addEventListener('click', function(){ jumpTo(cur + 1); });
+  st.querySelector('#sPrev').addEventListener('click', function(){ jumpTo(cur - 1); });
+  st.querySelector('#sClr').addEventListener('click', function(){
+    this.closest('.inner').querySelector('#sKw').value = ''; clearHits();
+  });
+
 })();
 </script>
 </body></html>
