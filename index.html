@@ -105,9 +105,6 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 body .wrap { transition: margin-left .22s ease, max-width .22s ease; }
 body.tocopen .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
 @media (max-width:900px) { body.tocopen .wrap { margin-left: 40px; margin-right: 8px; } }
-/* ---- 锁定态：大纲点击跳转后保持展开，直到光标进入正文区 ---- */
-body.sidelock .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
-
 /* ---- 移动端：抽屉模式（无 hover 的环境） ---- */
 #mBtn { display:none; position:fixed; left:10px; bottom:18px; z-index:70;
   background:var(--brand); color:#fff; border:none; border-radius:999px;
@@ -118,7 +115,7 @@ body.sidelock .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
 @media (max-width:720px) {
   #sideToc { display:none; }
   #mBtn { display:block; }
-  body .wrap, body.tocopen .wrap, body.sidelock .wrap { margin:0 !important; max-width:none; width:auto; padding:20px 14px 70px; box-sizing:border-box; }
+  body .wrap, body.tocopen .wrap { margin:0 !important; max-width:none; width:auto; padding:20px 14px 70px; box-sizing:border-box; }
   html, body { overflow-x:hidden; }
   #mDrawer { display:block !important; position:fixed; left:0; top:0; bottom:0; width:82vw; max-width:330px; z-index:90;
     background:#fff; box-shadow:8px 0 30px rgba(20,24,40,.25); transform:translateX(-105%);
@@ -637,7 +634,6 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   var lock = function(on){ document.body.classList.toggle('tocopen', on); };
   st.addEventListener('mouseenter', function(){ lock(true); });
   st.addEventListener('mouseleave', function(){
-    if (document.body.classList.contains('sidelock')) return;   // 锁定态不自动收
     if (!st.contains(document.activeElement)) lock(false);
   });
   st.addEventListener('focusin', function(){ lock(true); });
@@ -647,6 +643,8 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   links.forEach(function(a){
     var el = document.createElement('a');
     el.href = a.getAttribute('href'); el.textContent = a.textContent;
+    el.addEventListener('click', function(){ lock(true); setTimeout(function(){
+      if (!st.contains(document.activeElement) && !st.matches(':hover')) lock(false); }, 800); });
     nav.appendChild(el);
   });
   var stA = nav.querySelectorAll('a');
@@ -752,14 +750,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   highlight = function(kw){ lastKw = kw || ''; _hl(kw); };
   st.querySelector('#sNext').addEventListener('click', function(){ if (ensureSearched()) jumpTo(cur + 1); });
   st.querySelector('#sPrev').addEventListener('click', function(){ if (ensureSearched()) jumpTo(cur - 1); });
-  // 大纲点击 → 锁定展开（跳转后保持），光标移入正文区 → 解锁收起
-  nav.addEventListener('click', function(){ document.body.classList.add('sidelock'); lock(true); });
-  document.querySelector('.wrap').addEventListener('mousemove', function(){
-    if (document.body.classList.contains('sidelock')) {
-      document.body.classList.remove('sidelock');
-      if (!st.contains(document.activeElement)) lock(false);
-    }
-  });
+
   // ---- 移动端抽屉 ----
   var mBtn = document.createElement('button'); mBtn.id = 'mBtn'; mBtn.textContent = '目录';
   var mMask = document.createElement('div'); mMask.id = 'mMask';
