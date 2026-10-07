@@ -9,6 +9,7 @@
 :root { --ink:#1c1e26; --sub:#5a5f73; --line:#d8dbe4; --brand:#0b5bd3; --codebg:#f4f4f8; }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+h2[id], h3[id], [id^='sec'] { scroll-margin-top: 36px; }
 body { margin:0; background:#f6f7fa; color:var(--ink);
   font:16px/1.95 "Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei","PingFang SC",sans-serif; }
 .wrap { max-width:900px; margin:0 auto; padding:34px 22px 80px; background:#fff; min-height:100vh;
@@ -101,9 +102,9 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
 #sideToc .hits .ctx b { color:#c7254e; }
 /* 仅展开期间正文右移让位；收起后立即回位（细条落在宽屏居中留白处，不遮挡） */
-body .wrap { transition: padding-left .22s ease; }
-body.tocopen .wrap { padding-left: 316px; }
-@media (max-width:900px) { body.tocopen .wrap { padding-left: 40px; } }
+body .wrap { transition: margin-left .22s ease, max-width .22s ease; }
+body.tocopen .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
+@media (max-width:900px) { body.tocopen .wrap { margin-left: 40px; margin-right: 8px; } }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
@@ -707,7 +708,10 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   st.querySelector('#sNext').addEventListener('click', function(){ if (ensureSearched()) jumpTo(cur + 1); });
   st.querySelector('#sPrev').addEventListener('click', function(){ if (ensureSearched()) jumpTo(cur - 1); });
   st.querySelector('#sClr').addEventListener('click', function(){
-    this.closest('.inner').querySelector('#sKw').value = ''; clearHits();
+    var inp = st.querySelector('#sKw');
+    inp.value = ''; clearHits();
+    inp.blur(); st.dispatchEvent(new Event('mouseleave'));
+    document.activeElement && document.activeElement.blur && document.activeElement.blur();
   });
 
 })();
