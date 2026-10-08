@@ -529,10 +529,10 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 <figure><img src="img/fig23.webp" alt="图23 A 环境：对方电脑（LH754168 / Legio"><figcaption>图23 A 环境：对方电脑（LH754168 / Legion Y7000 IRX9）Defender 开启且特征库最新，扫描无威胁</figcaption></figure>
 <p>对方双击运行 loader（改名后的 encoded.txt 与其同目录；Kali 侧 handler 不用改，仍监听 443——变的只是 payload 的回连地址），会话立即回连成功：会话来自 10.30.5.38、目标用户 LH754168\15753；<code>sysinfo</code> 确认对方系统 Windows 11 24H2+（x64，Build 26200）；随后执行 <code>screenshot</code>（存为 tfXmPYAe.jpeg）与 <code>webcam_list</code>/<code>webcam_snap</code>（对方为集成摄像头 Integrated Camera，拍照存为 uDtmIUqg.jpeg）。</p>
 <figure><img src="img/fig24.webp" alt="图24 A 环境：跨网段会话建立，sessions 表确认来"><figcaption>图24 A 环境：跨网段会话建立，sessions 表确认来源与目标用户；screenshot 与 webcam_snap 均已保存（右侧两个查看器）</figcaption></figure>
-<h3><span class="hn">（四）</span>第二轮：另一台同局域网电脑（同网段直连，免转发）</h3>
-<p>第一轮的靶机在<strong>另一个网段</strong>，需要转发链路；这一轮把靶机换成一台与 Kali 同处一个 NAT 网段的 Windows 电脑（主机名 WYC，网段内地址 <code>10.30.42.143</code>，经转发主机 NAT 出站）——<strong>连端口转发都不需要了</strong>，payload 的 LHOST 直接填 Kali 地址，Kali 起 handler 后对方运行 loader 即可。</p>
+<h3><span class="hn">（四）</span>第二轮：另一台同局域网电脑（WLAN 内，仍走转发）</h3>
+<p>第一轮的靶机在<strong>另一个网段</strong>；这一轮把靶机换成一台与转发主机同处一个 WLAN 的 Windows 电脑（主机名 WYC，WLAN 内地址 <code>10.30.42.143</code>）。注意：<strong>转发链路仍然不能省</strong>——Kali 在 VMware NAT 网段里，与 WLAN 是两张不同的网卡，WYC 的流量依旧到不了 Kali，还是由转发主机把 443 收下再转给 Kali。与第一轮的差别只在靶机的位置（同 WLAN 而非跨网段），payload 的 LHOST 同样填转发主机地址。</p>
 <p>实测结果（2026-10-07）：Defender 未检出 loader，回连成功；这轮的控制力演示更进一步——除了 <code>webcam_snap</code>，还用 <code>keyscan_start</code>/<code>keyscan_dump</code> 做了<strong>键盘记录</strong>：对方敲下的按键被实时捕获（截图里的一串 <code>^H</code> 即退格键的记录）。</p>
-<figure><img src="img/fig25.webp" alt="图25 A 环境第二轮实测：同局域网电脑（WYC，10.30"><figcaption>图25 A 环境第二轮实测：同局域网电脑（WYC，10.30.42.143）loader 未检出、回连成功；keyscan_dump 捕获对方键盘输入（一串 ^H 即退格键），webcam_snap 拍照已存（右上查看器，含历史截图缩略）</figcaption></figure>
+<figure><img src="img/fig25.webp" alt="图25 A 环境第二轮实测：同 WLAN 电脑（WYC，10"><figcaption>图25 A 环境第二轮实测：同 WLAN 电脑（WYC，10.30.42.143，经转发主机中转）loader 未检出、回连成功；keyscan_dump 捕获对方键盘输入（一串 ^H 即退格键），webcam_snap 拍照已存（右上查看器，含历史截图缩略）</figcaption></figure>
 <div class="tbl"><div class="tcap">表6　附加题实测信息汇总</div>
 <table><thead><tr><th>附加题实测信息</th><th>内容</th></tr></thead><tbody>
 <tr><td>对方电脑</td><td>Lenovo Legion Y7000 IRX9，主机名 LH754168，Windows 11 24H2+（Build 26200，x64）</td></tr>
@@ -540,7 +540,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 <tr><td>杀软</td><td>Microsoft Defender 防病毒（实时保护开启，安全智能更新至 2026-09-30 9:51）</td></tr>
 <tr><td>样本</td><td>loader.exe（331 KB）+ encoded.txt（由 encoded_net.txt 改名而来，LHOST=10.30.43.151）</td></tr>
 <tr><td>实测结果</td><td>杀软未检出；回连成功，取得 screenshot 与 webcam_snap</td></tr>
-<tr><td>第二轮（同局域网）</td><td>靶机 WYC（10.30.42.143），免端口转发；未检出，回连成功，取得 webcam_snap 与键盘记录（keyscan）</td></tr>
+<tr><td>第二轮（同 WLAN）</td><td>靶机 WYC（10.30.42.143），仍经转发主机中转；未检出，回连成功，取得 webcam_snap 与键盘记录（keyscan）</td></tr>
 </tbody></table></div>
 <p><strong>这个环节补上了真实攻击的“网络维度”</strong>：payload 回连的地址必须是对方可达的——NAT 网段对外不可路由，就用端口转发把 443“搬”出去。整个过程与真实入侵的后渗透阶段几乎一致，也因此更具防御警示意义（见「原理深挖」一节）。</p>
 <h2 id="sec13"><span class="hn">十三、</span>结果总表</h2>
@@ -558,7 +558,7 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
 <tr><td>UPX 版加载器</td><td>压缩 52.14%</td><td>—</td><td>静态 0 威胁 + x64 https 回连成功</td></tr>
 <tr><td>传输完整性</td><td>MD5 校验</td><td>—</td><td>两端一致（7f98…d6d6）</td></tr>
 <tr><td>跨网段附加题</td><td>端口转发 + 专属载荷</td><td>对方电脑未检出，回连成功，取得屏幕/摄像头</td><td>—</td></tr>
-<tr><td>同局域网第二轮</td><td>免转发直连 + keyscan</td><td>对方电脑（10.30.42.143）未检出，回连成功，取得摄像头/键盘记录</td><td>—</td></tr>
+<tr><td>同 WLAN 第二轮</td><td>转发中转 + keyscan</td><td>对方电脑（10.30.42.143）未检出，回连成功，取得摄像头/键盘记录</td><td>—</td></tr>
 </tbody></table></div>
 <p>三条核心结论：</p>
 <ol>
