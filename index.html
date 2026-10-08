@@ -76,6 +76,14 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
   background:#ffffff; overflow-y:auto;
   border-right:1px solid var(--line); box-shadow:2px 0 8px rgba(20,24,40,.06); }
 #sideToc .inner { display:block; padding:14px 14px 20px; min-height:100%; }
+#sideToc .phead { display:flex; align-items:center; justify-content:space-between; padding:2px 2px 8px; }
+#sideToc .ptitle { font-weight:700; font-size:14.5px; color:var(--ink); }
+#sideToc .phead button, #sideToc #sUnfold { background:#f6f7fa; color:var(--sub); border:1px solid var(--line);
+  border-radius:6px; width:26px; height:26px; cursor:pointer; font-size:14px; line-height:1; }
+#sideToc .phead button:hover, #sideToc #sUnfold:hover { background:#eef2fb; color:var(--brand); border-color:var(--brand); }
+#sideToc #sUnfold { display:none; position:fixed; top:10px; left:9px; width:26px; height:26px; }
+body.tocCollapsed #sideToc #sUnfold { display:block; }
+body.tocCollapsed #sideToc .phead { display:none; }
 #sideToc .hd { font-weight:700; font-size:13.5px; color:var(--ink); margin:2px 0 8px; }
 #sideToc a { display:block; color:var(--ink); text-decoration:none; font-size:13px; line-height:1.6;
   padding:3px 8px; border-radius:6px; border-left:2px solid transparent; }
@@ -96,8 +104,16 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .hits a:hover { background:#eef2fb; }
 #sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
 #sideToc .hits .ctx b { color:#c7254e; }
-/* 持久分栏：正文永久让位 300px 面板 + 16px 间距 */
-body .wrap { margin-left:316px !important; margin-right:16px; max-width:none; }
+/* 持久分栏：正文永久让位 300px 面板 + 16px 间距；collapsed 态整体收起 */
+body .wrap { margin-left:316px !important; margin-right:16px; max-width:none; transition:margin-left .22s ease; }
+body.tocCollapsed .wrap { margin-left:auto !important; margin-right:auto; max-width:900px; }
+#sideToc { transition:width .22s ease; overflow:hidden; }
+body.tocCollapsed #sideToc { width:44px; }
+body.tocCollapsed #sideToc .inner { display:none; }
+body.tocCollapsed #sideToc .foldedTab { display:block; }
+#sideToc .foldedTab { display:none; writing-mode:vertical-rl; letter-spacing:4px;
+  font-size:12.5px; color:var(--brand); padding:16px 0; text-align:center; font-weight:600;
+  user-select:none; height:100%; }
 @media (max-width:900px) { body .wrap { margin:0 !important; } }
 /* ---- 移动端：抽屉模式（无 hover 的环境） ---- */
 #mBtn { display:none; position:fixed; left:10px; bottom:18px; z-index:70;
@@ -106,6 +122,8 @@ body .wrap { margin-left:316px !important; margin-right:16px; max-width:none; }
   box-shadow:0 4px 14px rgba(11,91,211,.4); }
 #mMask { display:none; position:fixed; inset:0; z-index:80; background:rgba(15,18,30,.45); }
 #mMask.on { display:block; }
+#mBtn { display:none; }
+#mDrawer { display:none; }
 @media (max-width:720px) {
   #sideToc { display:none; }
   #mBtn { display:block; }
@@ -617,14 +635,25 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
   function close(){ lb.classList.remove('on'); }
   // ---- 左侧大纲 + 搜索 ----
   var st = document.createElement('div'); st.id = 'sideToc';
-  st.innerHTML = '<div class="tab">目 录 · 大 纲</div><div class="inner">'
+  st.innerHTML = '<div class="phead"><span class="ptitle">目录 · 大纲</span>'
+    + '<button id="sFold" type="button" title="收起侧边栏">«</button></div><div class="inner">'
     + '<div class="hd">目录</div><div class="sbox"><input id="sKw" type="text" '
     + 'placeholder="搜索关键词…（回车跳转）"></div>'
     + '<div class="snav"><button id="sPrev" type="button">↑ 上一个</button>'
     + '<button id="sNext" type="button">↓ 下一个</button><button id="sClr" type="button">清除</button></div>'
     + '<div class="smeta" id="sMeta"></div>'
-    + '<div class="hits" id="sHits" style="display:none"></div><nav id="stLinks"></nav></div>';
+    + '<div class="hits" id="sHits" style="display:none"></div><nav id="stLinks"></nav></div>'
+    + '<div class="foldedTab">目 录 · 大 纲</div>'
+    + '<button id="sUnfold" type="button" title="展开侧边栏">»</button>';
   document.body.appendChild(st);
+  // 折叠/展开侧边栏
+  var setToc = function(collapsed){
+    document.body.classList.toggle('tocCollapsed', collapsed);
+    try { localStorage.setItem('tocCollapsed', collapsed ? '1' : '0'); } catch(e) {}
+  };
+  st.querySelector('#sFold').addEventListener('click', function(){ setToc(true); });
+  st.querySelector('#sUnfold').addEventListener('click', function(){ setToc(false); });
+  try { if (localStorage.getItem('tocCollapsed') === '1') document.body.classList.add('tocCollapsed'); } catch(e) {}
   var links = document.querySelectorAll('.wrap .toc a');
   var nav = st.querySelector('#stLinks');
   links.forEach(function(a){
