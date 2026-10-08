@@ -72,15 +72,10 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
   color:#6b5b1e; margin:16px 0; }
 
 /* ---- 左侧悬浮大纲（白色风格，任何视口宽度都可用） ---- */
-#sideToc { position:fixed; left:0; top:0; bottom:0; width:34px; z-index:60;
-  background:#ffffff; transition:width .22s ease; overflow:hidden;
+#sideToc { position:fixed; left:0; top:0; bottom:0; width:300px; z-index:60;
+  background:#ffffff; overflow-y:auto;
   border-right:1px solid var(--line); box-shadow:2px 0 8px rgba(20,24,40,.06); }
-#sideToc:hover, #sideToc:focus-within { width:300px; box-shadow:6px 0 24px rgba(20,24,40,.14); }
-#sideToc .tab { writing-mode:vertical-rl; letter-spacing:4px; font-size:12.5px; color:var(--brand);
-  padding:16px 9px; user-select:none; font-weight:600; }
-#sideToc:hover .tab, #sideToc:focus-within .tab { display:none; }
-#sideToc .inner { display:none; padding:14px 14px 20px; height:100%; overflow-y:auto; }
-#sideToc:hover .inner, #sideToc:focus-within .inner { display:block; }
+#sideToc .inner { display:block; padding:14px 14px 20px; min-height:100%; }
 #sideToc .hd { font-weight:700; font-size:13.5px; color:var(--ink); margin:2px 0 8px; }
 #sideToc a { display:block; color:var(--ink); text-decoration:none; font-size:13px; line-height:1.6;
   padding:3px 8px; border-radius:6px; border-left:2px solid transparent; }
@@ -101,10 +96,9 @@ figcaption { font-size:13.5px; color:var(--sub); margin-top:8px; text-align:cent
 #sideToc .hits a:hover { background:#eef2fb; }
 #sideToc .hits a.cur { background:#eef2fb; border-left-color:#ff8f3d; }
 #sideToc .hits .ctx b { color:#c7254e; }
-/* 仅展开期间正文右移让位；收起后立即回位（细条落在宽屏居中留白处，不遮挡） */
-body .wrap { transition: margin-left .22s ease, max-width .22s ease; }
-body.tocopen .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
-@media (max-width:900px) { body.tocopen .wrap { margin-left: 40px; margin-right: 8px; } }
+/* 持久分栏：正文永久让位 300px 面板 + 16px 间距 */
+body .wrap { margin-left:316px !important; margin-right:16px; max-width:none; }
+@media (max-width:900px) { body .wrap { margin:0 !important; } }
 /* ---- 移动端：抽屉模式（无 hover 的环境） ---- */
 #mBtn { display:none; position:fixed; left:10px; bottom:18px; z-index:70;
   background:var(--brand); color:#fff; border:none; border-radius:999px;
@@ -115,7 +109,7 @@ body.tocopen .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
 @media (max-width:720px) {
   #sideToc { display:none; }
   #mBtn { display:block; }
-  body .wrap, body.tocopen .wrap { margin:0 !important; max-width:none; width:auto; padding:20px 14px 70px; box-sizing:border-box; }
+  body .wrap { margin:0 !important; max-width:none; width:auto; padding:20px 14px 70px; box-sizing:border-box; }
   html, body { overflow-x:hidden; }
   #mDrawer { display:block !important; position:fixed; left:0; top:0; bottom:0; width:82vw; max-width:330px; z-index:90;
     background:#fff; box-shadow:8px 0 30px rgba(20,24,40,.25); transform:translateX(-105%);
@@ -142,10 +136,6 @@ body.tocopen .wrap { margin-left: 316px; margin-right: 16px; max-width: none; }
   .carousel .slide img { height:240px; }
   mark.hit { background:#ffd54d; }
 }
-/* 跳转收起过渡：0.6s 内压制 hover/focus 重展，防止面板抖动 */
-#sideToc.closing, #sideToc.closing:hover, #sideToc.closing:focus-within { width:34px !important; box-shadow:none; }
-#sideToc.closing .tab { display:block !important; }
-#sideToc.closing .inner, #sideToc.closing:hover .inner, #sideToc.closing:focus-within .inner { display:none !important; }
 mark.hit { background:#ffd54d; color:#1c1e26; border-radius:2px; padding:0 1px; }
 mark.hit.cur { background:#ff8f3d; color:#fff; }
 @media (max-width:640px) { .toc { columns:1; } .carousel .slide img { height:300px; } }
@@ -635,20 +625,11 @@ wc -c sc_net.raw encoded_net.txt    # 355 / 710，×2 校验通过</code></pre><
     + '<div class="smeta" id="sMeta"></div>'
     + '<div class="hits" id="sHits" style="display:none"></div><nav id="stLinks"></nav></div>';
   document.body.appendChild(st);
-  var lock = function(on){ document.body.classList.toggle('tocopen', on); };
-  st.addEventListener('mouseenter', function(){ lock(true); });
-  st.addEventListener('mouseleave', function(){
-    if (!st.contains(document.activeElement)) lock(false);
-  });
-  st.addEventListener('focusin', function(){ lock(true); });
-  st.addEventListener('focusout', function(){ setTimeout(function(){ if (!st.contains(document.activeElement)) lock(false); }, 0); });
   var links = document.querySelectorAll('.wrap .toc a');
   var nav = st.querySelector('#stLinks');
   links.forEach(function(a){
     var el = document.createElement('a');
     el.href = a.getAttribute('href'); el.textContent = a.textContent;
-    el.addEventListener('click', function(){ lock(true); setTimeout(function(){
-      if (!st.contains(document.activeElement) && !st.matches(':hover')) lock(false); }, 800); });
     nav.appendChild(el);
   });
   var stA = nav.querySelectorAll('a');
